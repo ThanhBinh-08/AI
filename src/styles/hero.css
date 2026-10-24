@@ -2,17 +2,17 @@
    Typography & Font Faces
    ========================================================================== */
 
-/* Geist Pixel Circle (Fallback display only) */
+/* Geist Pixel Circle (Category / Trust glyph symbols) */
 @font-face {
   font-family: "Geist Pixel Circle";
-  src: url("fonts/GeistPixel-Circle.woff2") format("woff2");
+  src: url("/fonts/GeistPixel-Circle.woff2") format("woff2");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
 /* ==========================================================================
-   CSS Variables (Exact)
+   CSS Variables & Typography Design Tokens
    ========================================================================== */
 :root {
   --bg: #000000;
@@ -20,13 +20,67 @@
   --muted: #8e8e8e;
   --nav-text: #2e2e2e;
   --pill-dark: #28282a;
-  --sign-in-text: #c8c8c8;
   --nav-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
   --trust-bg: #28282a;
   --trust-border: rgba(255, 255, 255, 0.4);
   --trust-text: #c4c2c3;
-  --font-sans: "Inter", "Segoe UI", system-ui, sans-serif;
-  --font-display: "BubbledotICG-FinePos", "Geist Pixel Circle", monospace;
+
+  /* Font Families */
+  --font-family-heading: var(--font-manrope), "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-family-body: var(--font-inter), "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-sans: var(--font-family-body);
+  --font-heading: var(--font-family-heading);
+  --font-display: var(--font-family-heading);
+  --font-glyph: "Geist Pixel Circle", monospace;
+  --font-code: ui-monospace, "SFMono-Regular", "Cascadia Mono", Consolas, monospace;
+
+  /* Font Weights */
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+
+  /* Headings Scale */
+  --text-h1: clamp(2.25rem, 4.5vw, 4rem);
+  --line-height-h1: 1.12;
+  --letter-spacing-h1: -0.035em;
+
+  --text-h2: clamp(1.875rem, 3.2vw, 2.75rem);
+  --line-height-h2: 1.2;
+  --letter-spacing-h2: -0.025em;
+
+  --text-h3: clamp(1.4375rem, 2.2vw, 2rem);
+  --line-height-h3: 1.25;
+  --letter-spacing-h3: -0.02em;
+
+  --text-h4: clamp(1.25rem, 1.8vw, 1.5rem);
+  --line-height-h4: 1.35;
+  --letter-spacing-h4: -0.015em;
+
+  --text-h5: clamp(1.125rem, 1.4vw, 1.25rem);
+  --line-height-h5: 1.4;
+  --letter-spacing-h5: -0.01em;
+
+  --text-h6: clamp(1rem, 1.2vw, 1.125rem);
+  --line-height-h6: 1.45;
+  --letter-spacing-h6: 0;
+
+  /* Body & UI Scale */
+  --text-body-lg: 1.125rem;
+  --line-height-body-lg: 1.7;
+
+  --text-body: 1rem;
+  --line-height-body: 1.7;
+
+  --text-body-sm: 0.875rem;
+  --line-height-body-sm: 1.6;
+
+  --text-caption: 0.8125rem;
+  --line-height-caption: 1.5;
+
+  --text-btn: 0.9375rem;
+  --line-height-btn: 1;
 }
 
 /* ==========================================================================
@@ -38,17 +92,69 @@
   padding: 0;
 }
 
+/* Base Document Typography */
 html, body {
   width: 100%;
-  height: 100vh;
-  height: 100dvh;
-  overflow: hidden;
+  min-height: 100dvh;
+  overflow-x: hidden;
   background-color: var(--bg);
   color: var(--text);
   font-family: var(--font-sans);
+  font-size: var(--text-body);
+  line-height: var(--line-height-body);
+  font-weight: var(--font-weight-regular);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+}
+
+/* Semantic Heading Defaults */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  color: var(--text);
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: var(--text-h1);
+  font-weight: var(--font-weight-extrabold);
+  line-height: var(--line-height-h1);
+  letter-spacing: var(--letter-spacing-h1);
+}
+
+h2 {
+  font-size: var(--text-h2);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-h2);
+  letter-spacing: var(--letter-spacing-h2);
+}
+
+h3 {
+  font-size: var(--text-h3);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-h3);
+  letter-spacing: var(--letter-spacing-h3);
+}
+
+h4 {
+  font-size: var(--text-h4);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-h4);
+  letter-spacing: var(--letter-spacing-h4);
+}
+
+h5 {
+  font-size: var(--text-h5);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-h5);
+  letter-spacing: var(--letter-spacing-h5);
+}
+
+h6 {
+  font-size: var(--text-h6);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-h6);
+  letter-spacing: var(--letter-spacing-h6);
 }
 
 body.menu-open {
@@ -79,6 +185,12 @@ body.menu-open {
 /* ==========================================================================
    Page Layout (One viewport, 3 regions)
    ========================================================================== */
+/* Home hero: the original one-viewport layout. .bg is positioned inside it. */
+.hero-screen {
+  position: relative;
+  isolation: isolate;
+}
+
 .page {
   position: relative;
   z-index: 1;
@@ -99,7 +211,7 @@ body.menu-open {
    ========================================================================== */
 .site-header {
   width: 100%;
-  max-width: 720px;
+  max-width: 860px;
   margin: 0 auto;
   display: flex;
   align-items: center;
@@ -153,7 +265,7 @@ body.menu-open {
 .nav-pill {
   background: #ffffff;
   height: clamp(44px, 5.2vw, 48px);
-  max-width: 430px;
+  max-width: 620px;
   flex: 1;
   padding: 4px 8px;
   border-radius: 999px;
@@ -203,34 +315,6 @@ body.menu-open {
   box-shadow: -5px 0 0 var(--nav-text), 5px 0 0 var(--nav-text);
 }
 
-/* Sign In (Desktop) */
-.header-signin {
-  background: var(--pill-dark);
-  color: var(--sign-in-text);
-  height: clamp(44px, 5.2vw, 48px);
-  border-radius: 999px;
-  box-shadow: var(--nav-shadow);
-  padding: 0 clamp(18px, 2.2vw, 24px);
-  font-family: var(--font-sans);
-  font-weight: 500;
-  font-size: clamp(13px, 1.4vw, 15px);
-  letter-spacing: -0.01em;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  border: none;
-  flex-shrink: 0;
-  white-space: nowrap;
-  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
-}
-
-.header-signin:hover {
-  background: #323234;
-  color: #ffffff;
-  transform: translateY(-1px);
-}
 
 /* Burger Button (Mobile) */
 .burger-btn {
@@ -327,11 +411,27 @@ body.menu-open {
   justify-content: center;
 }
 
-.trust-avatar-inner i {
+.trust-avatar-inner i,
+.trust-glyph {
   color: #111111;
   font-size: calc(var(--trust-size) * 0.34);
   display: block;
   line-height: 1;
+}
+
+/* Brand logos were replaced by the same dot-matrix glyphs the stats use. */
+.trust-glyph {
+  font-family: var(--font-glyph);
+  font-style: normal;
+  font-size: calc(var(--trust-size) * 0.56);
+}
+
+a.trust-row {
+  text-decoration: none;
+}
+
+a.trust-row:hover .trust-pill span {
+  color: #ffffff;
 }
 
 /* Trust Pill */
@@ -360,15 +460,14 @@ body.menu-open {
 
 /* Headline */
 .headline {
-  font-family: var(--font-display);
+  font-family: var(--font-heading);
   color: #ffffff;
-  font-size: clamp(28px, 6.2vw, 80px);
-  letter-spacing: -0.04em;
-  line-height: 1.12;
-  white-space: nowrap;
-  overflow: hidden;
+  font-size: var(--text-h1);
+  letter-spacing: var(--letter-spacing-h1);
+  line-height: var(--line-height-h1);
   margin-bottom: clamp(14px, 2vh, 22px);
-  font-weight: 400;
+  font-weight: var(--font-weight-extrabold);
+  text-wrap: balance;
 }
 
 /* Parent .headline.anim has no reveal animation itself */
@@ -403,13 +502,13 @@ body.menu-open {
 
 /* Subhead */
 .subhead {
-  max-width: min(500px, 92%);
+  max-width: min(540px, 92%);
   font-family: var(--font-sans);
-  font-size: clamp(calc(13.5px + 2pt), calc(1.55vw + 2pt), calc(16.5px + 2pt));
+  font-size: clamp(1rem, 1.6vw, var(--text-body-lg));
   color: #d0d0d0;
-  opacity: 0.8;
-  line-height: 1.55;
-  font-weight: 400;
+  opacity: 0.85;
+  line-height: var(--line-height-body);
+  font-weight: var(--font-weight-regular);
   margin-bottom: clamp(20px, 2.8vh, 32px);
 }
 
@@ -421,8 +520,8 @@ body.menu-open {
   background: #ffffff;
   color: #000000;
   font-family: var(--font-sans);
-  font-weight: 600;
-  font-size: clamp(13.5px, 1.5vw, 14.5px);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--text-btn);
   letter-spacing: -0.01em;
   text-decoration: none;
   padding: clamp(11px, 1.6vh, 13px) clamp(22px, 3vw, 28px);
@@ -501,7 +600,7 @@ body.menu-open {
 }
 
 .stat-icon {
-  font-family: var(--font-display);
+  font-family: var(--font-glyph);
   color: #ffffff;
   font-size: clamp(22px, 3vw, 33px);
   line-height: 1;
@@ -509,10 +608,10 @@ body.menu-open {
 }
 
 .stat-value {
-  font-family: var(--font-sans);
+  font-family: var(--font-heading);
   color: #ffffff;
-  font-size: clamp(18px, 2.2vw, 26px);
-  font-weight: 600;
+  font-size: clamp(1.25rem, 2.2vw, 1.75rem);
+  font-weight: var(--font-weight-bold);
   letter-spacing: -0.025em;
   font-variant-numeric: tabular-nums;
   line-height: 1;
@@ -560,8 +659,7 @@ body.menu-open {
     height: 48px;
   }
 
-  .nav-pill,
-  .header-signin {
+  .nav-pill {
     display: none !important;
   }
 
@@ -696,6 +794,9 @@ body.menu-open {
   .mobile-nav-link:nth-child(2) { animation-delay: 0.10s; }
   .mobile-nav-link:nth-child(3) { animation-delay: 0.15s; }
   .mobile-nav-link:nth-child(4) { animation-delay: 0.20s; }
+  .mobile-nav-link:nth-child(5) { animation-delay: 0.25s; }
+  .mobile-nav-link:nth-child(6) { animation-delay: 0.30s; }
+  .mobile-nav-link:nth-child(7) { animation-delay: 0.35s; }
 
   .mobile-nav-link.active::after {
     content: "";
@@ -710,29 +811,6 @@ body.menu-open {
     box-shadow: -5px 0 0 #2e2e2e, 5px 0 0 #2e2e2e;
   }
 
-  .mobile-signin {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 48px;
-    border-radius: 999px;
-    background: #28282a;
-    color: #ffffff;
-    font-family: var(--font-sans);
-    font-weight: 500;
-    font-size: 15px;
-    text-decoration: none;
-    margin-top: 8px;
-    opacity: 0;
-    transform: translateY(10px);
-    animation: linkIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) 0.25s forwards;
-    transition: background-color 0.2s ease;
-  }
-
-  .mobile-signin:hover {
-    background: #323234;
-  }
 
   @keyframes linkIn {
     to {
@@ -743,8 +821,8 @@ body.menu-open {
 
   /* Headline Mobile Tweaks */
   .headline {
-    letter-spacing: -0.08em;
-    line-height: 1.05;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
   }
 
   /* Stats grid: 2x2 */
@@ -767,8 +845,8 @@ body.menu-open {
   }
 
   .headline {
-    letter-spacing: -0.09em;
-    line-height: 1.04;
+    letter-spacing: -0.025em;
+    line-height: 1.1;
   }
 }
 
@@ -814,8 +892,7 @@ body.menu-open {
   .site-header,
   .mobile-overlay,
   .mobile-menu,
-  .mobile-nav-link,
-  .mobile-signin {
+  .mobile-nav-link {
     opacity: 1 !important;
     transform: none !important;
     filter: none !important;
