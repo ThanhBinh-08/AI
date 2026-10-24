@@ -76,7 +76,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const burgerBtn = document.getElementById("burgerBtn");
   const mobileMenu = document.getElementById("mobileMenu");
   const mobileOverlay = document.getElementById("mobileOverlay");
-  const mobileLinks = document.querySelectorAll(".mobile-nav-link, .mobile-signin");
+  const mobileLinks = document.querySelectorAll(".mobile-nav-link");
 
   const openMobileMenu = () => {
     if (!burgerBtn || !mobileMenu || !mobileOverlay) return;

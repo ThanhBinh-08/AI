@@ -1,0 +1,41 @@
+{
+  "Brands": [
+    ["brand_id", "name", "slug", "logo_url", "description", "category", "domain", "affiliate_url", "affiliate_program_status", "status", "updated_at"],
+    ["quill", "Quillwise (sample)", "", "", "Fictional writing assistant used to preview the site. Not a real company.", "ai-writing, productivity", "", "https://quillwise.sjv.io/c/1/2/3", "approved", "published", "2026-10-01"],
+    ["frame", "Framecast (sample)", "framecast", "", "Fictional video tool used to preview the site. Not a real company.", "ai-video", "", "https://partnerstack.com/framecast?via=sample", "approved", "published", ""],
+    ["codely", "Codely (sample)", "", "", "Fictional coding assistant used to preview the site. Not a real company.", "AI Coding", "", "https://codely.sjv.io/x", "pending", "published", ""],
+    ["draftco", "Draft Brand (sample)", "", "", "Not published yet.", "design", "", "https://draft.sjv.io/x", "approved", "draft", ""],
+    ["insecure", "Plainlink (sample)", "", "", "Has an http affiliate link, so its CTA is disabled.", "marketing", "", "http://plainlink.sjv.io/x", "approved", "published", ""],
+    ["offlist", "Offlist (sample)", "", "", "Affiliate host is not allowed.", "business", "", "https://random-tracker.net/r?id=1", "approved", "published", ""],
+    ["quill", "Duplicate id", "", "", "", "", "", "", "", "published", ""]
+  ],
+  "Coupons": [
+    ["coupon_id", "brand_id", "code", "discount", "title", "terms", "expires_at", "source_url", "verification_status", "verified_at", "status"],
+    ["Q1", "quill", "SAMPLE20", "20% off", "20% off Quillwise annual plans (sample)", "Annual plans only. New customers.", "2099-12-31", "https://quillwise.example.org/pricing", "checkout_tested", "2026-10-20", "published"],
+    ["Q2", "quill", "", "First month free", "", "", "", "", "source_verified", "2026-10-15", "published"],
+    ["Q3", "quill", "OLDCODE", "50% off", "Old Quillwise deal (sample)", "", "2020-01-31", "", "source_verified", "2020-01-10", "published"],
+    ["F1", "frame", "FRAME15", "15% off", "", "Monthly plans.", "2099-06-30", "", "unverified", "", "published"],
+    ["F2", "frame", "TESTED", "$10 off", "", "", "", "", "checkout_tested", "", "published"],
+    ["F3", "frame", "BADDATE", "5% off", "", "", "10/11/2026", "", "unverified", "", "published"],
+    ["C1", "codely", "CODE10", "10% off", "", "", "", "", "unverified", "", "published"],
+    ["D1", "draftco", "HIDDEN", "30% off", "", "", "", "", "unverified", "", "published"],
+    ["P1", "insecure", "PLAIN5", "5% off", "", "", "", "", "unverified", "", "published"],
+    ["Q4", "quill", "DRAFTCODE", "99% off", "", "", "", "", "unverified", "", "draft"],
+    ["X1", "ghost", "NOPE", "10% off", "", "", "", "", "unverified", "", "published"]
+  ],
+  "Products": [
+    ["product_id", "brand_id", "name", "slug", "description", "image_url", "category", "pricing", "pricing_checked_at", "pricing_source_url", "features", "use_cases", "pros", "cons", "status"],
+    ["quill-app", "quill", "Quillwise Writer (sample)", "quillwise-writer", "Fictional writing assistant for previewing tool pages.", "", "ai-writing", "From $12/month billed annually", "2026-10-20", "https://quillwise.example.org/pricing", "Drafts from outlines\nRewrites in a chosen tone\nGrammar checks", "Blog posts; Product emails", "Keeps a style guide per project", "No offline mode", "published"],
+    ["frame-app", "frame", "Framecast Studio (sample)", "framecast-studio", "Fictional video tool for previewing tool pages.", "", "ai-video", "$20/month", "", "", "Auto captions\nText to video", "Short social clips", "", "Watermark on free plan", "published"],
+    ["codely-app", "codely", "Codely Assist (sample)", "codely-assist", "Fictional coding assistant with no review yet.", "", "ai-coding", "", "", "", "", "", "", "", "published"],
+    ["draft-app", "draftco", "Draft App (sample)", "draft-app", "Brand is a draft.", "", "design", "", "", "", "", "", "", "", "published"]
+  ],
+  "Content": [
+    ["content_id", "type", "title", "slug", "excerpt", "body", "seo_title", "seo_description", "status", "published_at", "updated_at", "author", "brand_id", "product_id", "product_ids"],
+    ["cmp1", "compare", "Quillwise vs Framecast (sample)", "quillwise-vs-framecast", "A sample comparison for previewing the layout.", "## What was compared\n\nSample text. <script>alert(1)</script> stays text. [bad](javascript:alert(1)) [good](/deals/)", "", "", "published", "2026-10-21", "", "", "", "", "quill-app, frame-app"],
+    ["cmp2", "compare", "Needs two tools", "one-tool-only", "", "", "", "", "published", "2026-10-21", "", "", "", "", "quill-app, draft-app"],
+    ["alt1", "alternatives", "Alternatives to Quillwise Writer (sample)", "quillwise-writer-alternatives", "Sample alternatives page.", "## How we chose\n\nSample criteria.", "", "", "published", "2026-10-21", "", "", "", "quill-app", "frame-app, codely-app"],
+    ["blog1", "blog", "A sample post from the Sheet", "sample-sheet-post", "Shows that Sheet posts list next to the built-in guides.", "Sample body.", "", "", "published", "2026-10-21", "", "", "quill", "", ""],
+    ["blog2", "blog", "Draft post", "draft-post", "", "", "", "", "draft", "", "", "", "", "", ""]
+  ]
+}

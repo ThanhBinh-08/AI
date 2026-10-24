@@ -1,0 +1,53 @@
+{
+  "name": "ai-tools-deals",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev -p 3400",
+    "dev:preview": "next dev -p 3401",
+    "build": "next build",
+    "start": "next start -p 3400",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "smoke": "node scripts/smoke.mjs",
+    "check:sheet": "tsx --conditions=react-server --env-file-if-exists=.env.local scripts/check-sheet.ts",
+    "db:create": "tsx --env-file-if-exists=.env.local scripts/db/create-database.ts",
+    "db:crawl": "tsx scripts/db/crawl-toolify.ts",
+    "db:import": "tsx --env-file-if-exists=.env.local scripts/db/import-preview.ts",
+    "db:sample": "tsx scripts/db/make-sample-workbook.ts",
+    "db:fetch": "tsx scripts/db/fetch-aiusecases.ts",
+    "db:design-samples": "tsx scripts/db/add-design-samples.ts",
+    "db:push-samples": "tsx --env-file-if-exists=.env.local scripts/db/push-samples.ts",
+    "db:migrate": "tsx --env-file-if-exists=.env.local scripts/db/migrate-schema.ts",
+    "db:fill-reviews": "tsx --env-file-if-exists=.env.local scripts/db/fill-review-stubs.ts",
+    "db:fetch-pages": "tsx scripts/db/fetch-aiusecases-pages.ts",
+    "db:fetch-logos": "tsx --env-file-if-exists=.env.local scripts/db/fetch-logos.ts",
+    "db:write-reviews": "tsx --env-file-if-exists=.env.local scripts/db/write-reviews.ts",
+    "detect:brand": "tsx --conditions=react-server scripts/detect-brand.ts"
+  },
+  "dependencies": {
+    "google-auth-library": "^11.1.0",
+    "next": "^16.3.8",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "server-only": "^0.0.1",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@types/node": "^26.6.4",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.3.8",
+    "jsdom": "^30.1.2",
+    "playwright-core": "^1.64.1",
+    "tsx": "^4.23.15",
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.3"
+  }
+}
