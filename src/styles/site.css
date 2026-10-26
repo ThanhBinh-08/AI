@@ -1620,8 +1620,10 @@ a.chip:hover {
   font-family: var(--font-glyph);
   font-size: clamp(5rem, 17vw, 12.5rem);
   font-weight: 400;
-  line-height: 0.92;
+  line-height: 1.1;
   letter-spacing: 0;
+  /* Room below the baseline and at the sides: the "g" descender and the outer dots are not cut by the gradient clip or the scan. */
+  padding: 0.04em 0.08em 0.16em 0;
   background: linear-gradient(95deg, var(--glow-pink), var(--glow-violet) 55%, var(--glow-orange) 100%);
   -webkit-background-clip: text;
   background-clip: text;
@@ -1636,7 +1638,7 @@ a.chip:hover {
   }
 
   to {
-    clip-path: inset(0 0 0 0);
+    clip-path: inset(-0.1em -0.1em -0.1em -0.1em);
   }
 }
 
