@@ -1,6 +1,7 @@
 import { categoryBySlug } from "@/config/categories";
 import { checkAffiliateUrl, extraHosts, httpsUrl, normalizeDomain } from "@/lib/affiliate";
 import { isPast, parseDay, today } from "@/lib/dates";
+import { logoOrSiteLogo } from "@/lib/logo-path";
 import { SLUG_RE, slugify, splitList } from "@/lib/text";
 import type { RawTabs, TabName } from "@/data/sheets/source";
 import type {
@@ -117,7 +118,8 @@ function parseBrands(cells: string[][], issues: Issue[], affiliateUrls: Map<stri
       id,
       name,
       slug,
-      logoUrl: logo ? logo.toString() : null,
+      // No logo_url: the logo of the tool's own website (served by /logo/<id>/), never another tool's.
+      logoUrl: logoOrSiteLogo(logo ? logo.toString() : null, id, domain),
       description: r.get("description"),
       categories: categoriesOf(r.get("category"), issue),
       domain,
@@ -184,6 +186,8 @@ function parseCoupons(cells: string[][], issues: Issue[], brands: Map<string, Br
       verification,
       verifiedAt,
       status,
+      ...(r.get("sample") === "1" ? { sample: true } : {}),
+      ...(r.get("featured") === "1" ? { featured: true, featuredOrder: /^[1-9]\d{0,3}$/.test(r.get("featured_order")) ? Number(r.get("featured_order")) : null } : {}),
     });
   }
   return coupons;

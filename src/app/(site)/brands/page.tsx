@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import { FeaturedDeals } from "@/components/deals/FeaturedDeals";
 import Link from "next/link";
 import { BrandTile } from "@/components/cards/cards";
 import { EmptyState, PageHead } from "@/components/ui/bits";
-import { listBrands } from "@/data/repository";
+import { listBrands, listFeaturedDeals } from "@/data/repository";
 import { pageMeta } from "@/lib/seo";
 
 export const revalidate = 300;
@@ -14,6 +15,7 @@ export const metadata: Metadata = pageMeta({
 });
 
 export default async function BrandsPage() {
+  const featured = await listFeaturedDeals();
   const brands = await listBrands();
   return (
     <div className="container">
@@ -33,6 +35,7 @@ export default async function BrandsPage() {
           Brands appear here once they are reviewed and published.
         </EmptyState>
       )}
+      <FeaturedDeals className="section" deals={featured} id="page-featured" />
     </div>
   );
 }

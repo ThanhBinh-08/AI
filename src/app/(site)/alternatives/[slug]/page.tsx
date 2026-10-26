@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
+import { FeaturedDeals } from "@/components/deals/FeaturedDeals";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DealList } from "@/components/cards/cards";
 import { CompareTable } from "@/components/compare/CompareTable";
 import { JsonLd, PageHead } from "@/components/ui/bits";
-import { getAlternatives } from "@/data/repository";
+import { getAlternatives, listFeaturedDeals } from "@/data/repository";
 import { formatDay } from "@/lib/dates";
 import { getSiteUrl } from "@/lib/env";
 import { breadcrumbs } from "@/lib/jsonld";
@@ -36,6 +37,10 @@ export default async function AlternativesPage({ params }: Props) {
   const data = await getAlternatives((await params).slug);
   if (!data) notFound();
   const { post, subject, alternatives, deals } = data;
+  const featured = await listFeaturedDeals({
+    categories: [...new Set([subject, ...alternatives].flatMap((t) => t.categories))],
+    exclude: deals.map((d) => d.id),
+  });
   const crumbs = [
     { name: "Home", path: "/" },
     { name: "Alternatives", path: "/alternatives/" },
@@ -76,6 +81,7 @@ export default async function AlternativesPage({ params }: Props) {
           <DealList deals={deals} />
         </section>
       ) : null}
+      <FeaturedDeals className="section" deals={featured} id="page-featured" />
     </div>
   );
 }

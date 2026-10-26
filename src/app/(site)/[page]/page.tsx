@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { FeaturedDeals } from "@/components/deals/FeaturedDeals";
 import { notFound } from "next/navigation";
 import { JsonLd, PageHead } from "@/components/ui/bits";
 import { STATIC_PAGES, staticPage } from "@/content/pages";
@@ -6,6 +7,7 @@ import { formatDay } from "@/lib/dates";
 import { getSiteUrl } from "@/lib/env";
 import { breadcrumbs } from "@/lib/jsonld";
 import { Markdown } from "@/lib/markdown";
+import { listFeaturedDeals } from "@/data/repository";
 import { pageMeta } from "@/lib/seo";
 
 type Props = { params: Promise<{ page: string }> };
@@ -24,6 +26,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function StaticPageRoute({ params }: Props) {
+  const featured = await listFeaturedDeals();
   const page = staticPage((await params).page);
   if (!page) notFound();
   const crumbs = [
@@ -39,6 +42,7 @@ export default async function StaticPageRoute({ params }: Props) {
       <div className="prose">
         <Markdown source={page.body} />
       </div>
+      <FeaturedDeals className="section" deals={featured} id="page-featured" />
     </div>
   );
 }

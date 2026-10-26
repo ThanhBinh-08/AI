@@ -3,8 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DealList } from "@/components/cards/cards";
 import { CompareTable } from "@/components/compare/CompareTable";
+import { FeaturedDeals } from "@/components/deals/FeaturedDeals";
 import { JsonLd, PageHead } from "@/components/ui/bits";
-import { getComparison } from "@/data/repository";
+import { getComparison, listFeaturedDeals } from "@/data/repository";
 import { formatDay } from "@/lib/dates";
 import { getSiteUrl } from "@/lib/env";
 import { breadcrumbs } from "@/lib/jsonld";
@@ -34,6 +35,12 @@ export default async function ComparisonPage({ params }: Props) {
   const data = await getComparison((await params).slug);
   if (!data) notFound();
   const { post, tools, deals } = data;
+  const featured = await listFeaturedDeals({
+    brandIds: tools.map((t) => t.brandId),
+    categories: [...new Set(tools.flatMap((t) => t.categories))],
+    exclude: deals.map((d) => d.id),
+    limit: 3,
+  });
   const crumbs = [
     { name: "Home", path: "/" },
     { name: "Compare", path: "/compare/" },
@@ -74,6 +81,8 @@ export default async function ComparisonPage({ params }: Props) {
           <DealList deals={deals} />
         </section>
       ) : null}
+
+      <FeaturedDeals className="section" deals={featured} id="compare-featured" />
     </div>
   );
 }

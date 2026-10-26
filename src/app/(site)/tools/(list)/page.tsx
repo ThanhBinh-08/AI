@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ToolTile } from "@/components/cards/cards";
+import { FeaturedDeals } from "@/components/deals/FeaturedDeals";
 import { AutoSubmit } from "@/components/ui/AutoSubmit";
 import { ChipRail } from "@/components/ui/ChipRail";
 import { EmptyState, PageHead, Pagination } from "@/components/ui/bits";
-import { listToolsPaged, toolCategoryCounts } from "@/data/repository";
+import { listFeaturedDeals, listToolsPaged, toolCategoryCounts } from "@/data/repository";
 import { categoryParam, one, pageParam, withQuery, type SearchParams } from "@/lib/params";
 import { pageMeta } from "@/lib/seo";
 
@@ -26,7 +27,12 @@ export default async function ToolsPage({ searchParams }: Props) {
   const category = categoryParam(sp);
   const q = one(sp, "q");
   const page = pageParam(sp);
-  const [result, categories, everything] = await Promise.all([listToolsPaged({ category, q, page }), toolCategoryCounts(), listToolsPaged({})]);
+  const [result, categories, everything, featured] = await Promise.all([
+    listToolsPaged({ category, q, page }),
+    toolCategoryCounts(),
+    listToolsPaged({}),
+    listFeaturedDeals({ categories: category ? [category] : [] }),
+  ]);
   const tools = result.items;
   const filtered = Boolean(category || q);
 
@@ -75,6 +81,12 @@ export default async function ToolsPage({ searchParams }: Props) {
             ))}
           </ul>
           <Pagination page={result.page} totalPages={result.totalPages} href={(n) => withQuery("/tools/", { q, category, page: n })} />
+          <FeaturedDeals
+              className="section"
+              deals={featured}
+              id="tools-featured"
+             
+            />
         </>
       ) : (
         <EmptyState

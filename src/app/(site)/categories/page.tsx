@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import { FeaturedDeals } from "@/components/deals/FeaturedDeals";
 import Link from "next/link";
 import { CategoryTile } from "@/components/cards/cards";
 import { EmptyState, PageHead } from "@/components/ui/bits";
-import { listCategories } from "@/data/repository";
+import { listCategories, listFeaturedDeals } from "@/data/repository";
 import { pageMeta } from "@/lib/seo";
 
 export const revalidate = 300;
@@ -14,6 +15,7 @@ export const metadata: Metadata = pageMeta({
 });
 
 export default async function CategoriesPage() {
+  const featured = await listFeaturedDeals();
   const categories = await listCategories();
   return (
     <div className="container">
@@ -33,6 +35,7 @@ export default async function CategoriesPage() {
           Categories appear as soon as a tool or deal is published in them.
         </EmptyState>
       )}
+      <FeaturedDeals className="section" deals={featured} id="page-featured" />
     </div>
   );
 }

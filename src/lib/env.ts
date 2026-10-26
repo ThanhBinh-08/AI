@@ -52,3 +52,4 @@ export function previewRecordsAllowed(source: NodeJS.ProcessEnv = process.env): 
   const wanted = source.SHOW_PREVIEW_RECORDS?.trim();
   return (wanted === "1" || wanted === "true") && !isIndexable(source);
 }
+

@@ -19,71 +19,17 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { JWT } from "google-auth-library";
 import sharp from "sharp";
+import { NOT_A_BRAND_HOST, candidates, getImage, getText } from "../../src/lib/site-logo";
 
 const APPLY = process.argv.includes("--apply");
 const REFRESH = process.argv.includes("--refresh");
-const UA = "AIDirectoryLogoBot/0.1 (+brand logo lookup for a tool directory; one request per site)";
 const CACHE = "local-data/logos.json";
 const TONES = "src/config/logo-tones.json";
-const MAX_IMG = 1_500_000;
-const MAX_HTML = 600_000;
 
 type Tone = "own" | "dark" | "light" | "mid";
 type Result = { tool_id: string; name: string; page: string; logo: string; from: string; tone: Tone; note: string };
 
 const letter = (i: number) => String.fromCharCode(65 + i);
-const attr = (tag: string, name: string) => new RegExp(`\\b${name}\\s*=\\s*("([^"]*)"|'([^']*)'|([^\\s>]+))`, "i").exec(tag)?.slice(2).find((v) => v !== undefined) ?? "";
-
-async function getText(url: string): Promise<{ body: string; finalUrl: string }> {
-  const res = await fetch(url, { headers: { "User-Agent": UA, Accept: "text/html" }, redirect: "follow", signal: AbortSignal.timeout(12_000) });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return { body: (await res.text()).slice(0, MAX_HTML), finalUrl: res.url };
-}
-
-async function getImage(url: string): Promise<{ buf: Buffer; type: string } | null> {
-  try {
-    const res = await fetch(url, { headers: { "User-Agent": UA, Accept: "image/*" }, redirect: "follow", signal: AbortSignal.timeout(12_000) });
-    if (!res.ok) return null;
-    const type = (res.headers.get("content-type") ?? "").split(";")[0]!.trim().toLowerCase();
-    if (type && !type.startsWith("image/")) return null;
-    const buf = Buffer.from(await res.arrayBuffer());
-    if (buf.length === 0 || buf.length > MAX_IMG) return null;
-    return { buf, type };
-  } catch {
-    return null;
-  }
-}
-
-function candidates(html: string, base: string): { url: string; from: string; score: number }[] {
-  const out: { url: string; from: string; score: number }[] = [];
-  const abs = (href: string) => { try { const u = new URL(href.trim(), base); return u.protocol === "https:" ? u.toString() : ""; } catch { return ""; } };
-  for (const tag of html.match(/<link\b[^>]*>/gi) ?? []) {
-    const rel = attr(tag, "rel").toLowerCase();
-    const href = abs(attr(tag, "href"));
-    if (!href || !/\b(apple-touch-icon|icon)\b/.test(rel) || /mask-icon/.test(rel)) continue;
-    const size = Math.max(0, ...(attr(tag, "sizes").match(/\d+/g) ?? ["0"]).map(Number));
-    const svg = /\.svg(\?|$)/i.test(href) || /svg/i.test(attr(tag, "type"));
-    if (/apple-touch-icon/.test(rel)) out.push({ url: href, from: "apple-touch-icon", score: 1000 + size });
-    else out.push({ url: href, from: svg ? "icon-svg" : "icon", score: (svg ? 900 : 100) + size });
-  }
-  out.push({ url: abs("/favicon.ico"), from: "favicon.ico", score: 50 });
-  for (const m of html.matchAll(/<script[^>]+application\/ld\+json[^>]*>([\s\S]*?)<\/script>/gi)) {
-    try {
-      const walk = (n: unknown): void => {
-        if (Array.isArray(n)) return n.forEach(walk);
-        if (n && typeof n === "object") {
-          const o = n as Record<string, unknown>;
-          const l = o.logo;
-          const url = typeof l === "string" ? l : l && typeof l === "object" ? String((l as Record<string, unknown>).url ?? "") : "";
-          if (url && abs(url)) out.push({ url: abs(url), from: "schema-logo", score: 20 });
-          Object.values(o).forEach(walk);
-        }
-      };
-      walk(JSON.parse(m[1]!));
-    } catch { /* ignore broken JSON-LD */ }
-  }
-  return out.filter((c) => c.url).sort((a, b) => b.score - a.score);
-}
 
 /** How light or dark the visible part of the image is. */
 async function measure(buf: Buffer): Promise<Tone | null> {
@@ -107,9 +53,6 @@ async function measure(buf: Buffer): Promise<Tone | null> {
     return null;
   }
 }
-
-/** Hosts whose icon is not the tool's brand: a repo page shows the code host's logo, example.com is a placeholder. */
-const NOT_A_BRAND_HOST = /(^|\.)(github\.com|gitlab\.com|bitbucket\.org|example\.(com|org|net))$/i;
 
 async function resolveTool(tool: { tool_id: string; name: string; official_url: string }): Promise<Result> {
   const base: Result = { tool_id: tool.tool_id, name: tool.name, page: tool.official_url, logo: "", from: "", tone: "mid", note: "" };
@@ -159,7 +102,9 @@ async function main() {
   const rows = ((await res.json()) as { values?: string[][] }).values ?? [];
   const header = rows[0] ?? [];
   const col = (n: string) => { const i = header.indexOf(n); if (i < 0) throw new Error(`Tools has no ${n} column`); return i; };
-  const [cId, cName, cOfficial, cLogo] = [col("tool_id"), col("name"), col("official_url"), col("logo_url")];
+  // The tool's site: official_url on older Sheets, affiliate_url since that column holds the tool's URL (2026-10-26).
+  const cOfficial = header.includes("official_url") ? col("official_url") : col("affiliate_url");
+  const [cId, cName, cLogo] = [col("tool_id"), col("name"), col("logo_url")];
   const tools = rows.slice(1).map((r, i) => ({ row: i + 2, tool_id: (r[cId] ?? "").trim(), name: (r[cName] ?? "").trim(), official_url: (r[cOfficial] ?? "").trim(), logo: (r[cLogo] ?? "").trim() })).filter((t) => t.tool_id);
 
   mkdirSync("local-data", { recursive: true });

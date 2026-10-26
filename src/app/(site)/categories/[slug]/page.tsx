@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { BrandTile, DealList, ToolTile } from "@/components/cards/cards";
+import { FeaturedDeals } from "@/components/deals/FeaturedDeals";
 import { JsonLd, PageHead } from "@/components/ui/bits";
-import { getCategory } from "@/data/repository";
+import { getCategory, listFeaturedDeals } from "@/data/repository";
 import { getSiteUrl } from "@/lib/env";
 import { breadcrumbs } from "@/lib/jsonld";
 import { pageMeta } from "@/lib/seo";
@@ -31,6 +32,9 @@ export default async function CategoryPage({ params }: Props) {
   const data = await getCategory((await params).slug);
   if (!data) notFound();
   const { category, deals, tools, brands } = data;
+  const featured = await listFeaturedDeals({ categories: [category.slug] });
+  const featuredIds = new Set(featured.map((d) => d.id));
+  const otherDeals = deals.filter((d) => !featuredIds.has(d.id));
   const crumbs = [
     { name: "Home", path: "/" },
     { name: "Categories", path: "/categories/" },
@@ -41,6 +45,8 @@ export default async function CategoryPage({ params }: Props) {
     <div className="container">
       <JsonLd data={breadcrumbs(getSiteUrl(), crumbs)} />
       <PageHead crumbs={crumbs} title={category.name} lede={category.intro} />
+
+      <FeaturedDeals className="section" deals={featured} id="category-featured" />
 
       {tools.length > 0 ? (
         <section className="section">
@@ -55,12 +61,12 @@ export default async function CategoryPage({ params }: Props) {
         </section>
       ) : null}
 
-      {deals.length > 0 ? (
+      {otherDeals.length > 0 ? (
         <section className="section">
           <h2 className="display" style={{ fontSize: "clamp(24px, 3vw, 34px)", marginBottom: 20 }}>
-            Active deals
+            {featured.length > 0 ? "More active deals" : "Active deals"}
           </h2>
-          <DealList deals={deals} />
+          <DealList deals={otherDeals} />
         </section>
       ) : null}
 

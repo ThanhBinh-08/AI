@@ -103,7 +103,7 @@ async function main() {
     const facts = pages.get(get("source_url"));
     const tool = toolBySource.get(get("source_url"));
     if (!facts || !tool) { noFacts++; return; }
-    const r = buildReview(facts, tool.official_url ?? "");
+    const r = buildReview(facts, tool.official_url || tool.affiliate_url || "");
     const values: Record<string, string> = { content: r.content, excerpt: r.excerpt, author: AUTHOR, published_at: today, updated_at: today, status: "published", seo_title: r.seoTitle, seo_description: r.seoDescription };
     for (const [name, v] of Object.entries(values)) {
       // Fill-only: the status column already says "draft" on stubs, so it is replaced; every other cell only when empty.

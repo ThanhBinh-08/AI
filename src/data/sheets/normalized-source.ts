@@ -1,7 +1,7 @@
 import "server-only";
 import { readFile } from "node:fs/promises";
 import { adaptNormalized, emptyNormalized, type NormalizedRaw } from "@/data/normalized/adapt";
-import { NORMALIZED_TABS } from "@/data/normalized/schema";
+import { NORMALIZED_TABS, OPTIONAL_TABS } from "@/data/normalized/schema";
 import { previewRecordsAllowed } from "@/lib/env";
 import type { Issue } from "@/types/catalog";
 import { SheetsRequestError, shortMessage } from "./errors";
@@ -18,20 +18,29 @@ export class NormalizedGoogleSource extends GoogleSheetsSource {
     const token = await this.getToken().catch((cause: unknown) => {
       throw new SheetsRequestError("auth", `Google auth failed: ${shortMessage(cause)}`);
     });
-    const ranges = NORMALIZED_TABS.map((t) => `ranges=${encodeURIComponent(`'${t}'`)}`).join("&");
+    // Which tabs exist: optional tabs (OPTIONAL_TABS) may be gone, required ones may not.
+    const metaRes = await this.request(`${this.base()}?fields=sheets.properties.title`, token, { left: 3 });
+    if (!metaRes.ok) throw await this.failure(metaRes);
+    const meta = (await metaRes.json().catch(() => null)) as { sheets?: { properties?: { title?: string } }[] } | null;
+    const titles = new Set((meta?.sheets ?? []).map((s) => s.properties?.title ?? ""));
+    const missing = NORMALIZED_TABS.filter((t) => !titles.has(t) && !OPTIONAL_TABS.includes(t));
+    if (missing.length > 0) throw new SheetsRequestError("invalid", `The Sheet is missing required tab(s): ${missing.join(", ")} (see README)`, 400);
+    const present = NORMALIZED_TABS.filter((t) => titles.has(t));
+
+    const ranges = present.map((t) => `ranges=${encodeURIComponent(`'${t}'`)}`).join("&");
     const res = await this.request(
       `${this.base()}/values:batchGet?${ranges}&majorDimension=ROWS&valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=FORMATTED_STRING`,
       token,
       { left: 3 },
     );
-    if (res.status === 400) throw new SheetsRequestError("invalid", "The Sheet does not have all 8 AI-directory tabs (see README)", 400);
+    if (res.status === 400) throw new SheetsRequestError("invalid", "The Sheet tabs could not be read (see README)", 400);
     if (!res.ok) throw await this.failure(res);
     const data = (await res.json().catch(() => {
       throw new SheetsRequestError("invalid", "Google Sheets returned a response that is not JSON");
     })) as { valueRanges?: { values?: unknown[][] }[] };
     if (!Array.isArray(data.valueRanges)) throw new SheetsRequestError("invalid", "Google Sheets response has no valueRanges");
     const raw = emptyNormalized();
-    NORMALIZED_TABS.forEach((t, i) => { raw[t] = cells(data.valueRanges?.[i]?.values); });
+    present.forEach((t, i) => { raw[t] = cells(data.valueRanges?.[i]?.values); });
     const out = adaptNormalized(raw, { allowPreview: previewRecordsAllowed() });
     this.adapterIssues = out.issues;
     return out.tabs;

@@ -3,7 +3,10 @@ import { CATEGORIES, categoryBySlug, type CategoryDef } from "@/config/categorie
 import { PAGE_SIZE } from "@/config/site";
 import { ARTICLES } from "@/content/articles";
 import { getParsedCatalog } from "@/data/store";
-import { isPast } from "@/lib/dates";
+import { siteLogoPath } from "@/lib/logo-path";
+import { buildMarket, type Market } from "@/lib/market";
+import { isCheckedVerification, isLiveCoupon } from "@/lib/coupon-rules";
+import { FEATURED_LIMIT, selectFeatured, type FeaturedContext } from "@/lib/featured";
 import type { BlogKind, Brand, Catalog, Coupon, DealView, Post, PostView, Product, Verification } from "@/types/catalog";
 
 export { forceRefresh, storeHealth } from "@/data/store";
@@ -25,7 +28,7 @@ async function catalog(): Promise<Catalog> {
 const isPublicBrand = (b: Brand | undefined): b is Brand => b?.status === "published";
 
 export function isActiveDeal(c: Coupon, now: Date = new Date()): boolean {
-  return c.status === "published" && !isPast(c.expiresAt, now);
+  return isLiveCoupon(c, now);
 }
 
 function brandMap(c: Catalog): Map<string, Brand> {
@@ -47,7 +50,7 @@ function liveDeals(c: Catalog): DealView[] {
 }
 
 /** A deal someone has checked (source or checkout). Unchecked offers are never promoted. */
-export const isPromotable = (d: Pick<DealView, "verification" | "active">) => d.active && d.verification !== "unverified";
+export const isPromotable = (d: Pick<DealView, "verification" | "active">) => d.active && isCheckedVerification(d.verification);
 
 /**
  * The deals the site promotes: live AND checked. Every list, count, card badge, featured slot, search result and the
@@ -105,12 +108,14 @@ function sortDeals(deals: DealView[], sort: DealSort = "verified"): DealView[] {
 
 /* ----------------------------------------- Deals ----------------------------------------- */
 
-/** Deals of editorially featured brands (Tools.featured), best-checked first, then ending soonest. Never invented. */
-export async function listFeaturedDeals(limit = 3): Promise<DealView[]> {
-  return activeDeals(await catalog())
-    .filter((d) => d.brand.featured)
-    .sort((a, b) => VERIFICATION_RANK[b.verification] - VERIFICATION_RANK[a.verification] || (a.expiresAt ?? "9999").localeCompare(b.expiresAt ?? "9999"))
-    .slice(0, limit);
+/**
+ * Featured deals for one placement (rules in src/lib/featured.ts): only deals an editor marked Deals.is_featured,
+ * that are live, checked and have a working /go/ link, in featured_order (then deal_id). With a context, deals of
+ * those brands or categories come first, minus the ones the page already shows. Never padded with other deals.
+ */
+export async function listFeaturedDeals(ctx: FeaturedContext = {}): Promise<DealView[]> {
+  // Every placement shows a full set when enough featured deals exist: relevant ones first, then the others.
+  return selectFeatured(liveDeals(await catalog()), { fill: true, ...ctx });
 }
 
 /** Categories that have active deals, with the count, for the filter chips. */
@@ -138,6 +143,14 @@ export async function dealFacets(): Promise<{ categories: CategoryDef[]; brands:
     categories: CATEGORIES.filter((c) => cats.has(c.slug)),
     brands: [...brands].map(([slug, name]) => ({ slug, name })).sort((a, b) => a.name.localeCompare(b.name)),
   };
+}
+
+/**
+ * Everything the Deals page needs, built once from the cached catalog: every listed brand, every eligible coupon and
+ * the category counts. Search, filters and sorting then run on this data in the browser, never against the Sheet.
+ */
+export async function getDealsMarket(now: Date = new Date()): Promise<Market> {
+  return buildMarket(await catalog(), now);
 }
 
 export interface DealPage {
@@ -580,13 +593,22 @@ export interface HomeData {
 }
 
 export async function getHome(): Promise<HomeData> {
-  const [deals, featuredDeals, brands, tools, categories, views] = await Promise.all([listDeals(), listFeaturedDeals(), listBrands(), listTools(), listCategories(), postViews()]);
+  const [deals, featuredDeals, brands, tools, categories, views] = await Promise.all([
+    listDeals(),
+    listFeaturedDeals({ limit: FEATURED_LIMIT }),
+    listBrands(),
+    listTools(),
+    listCategories(),
+    postViews(),
+  ]);
+  const featuredIds = new Set(featuredDeals.map((d) => d.id));
   // Written articles lead; directory profiles fill in only when there is nothing else.
   const posts = [...views.filter((p) => !p.directoryProfile), ...views.filter((p) => p.directoryProfile)];
   return {
     stats: { deals: deals.total, brands: brands.length, tools: tools.length, categories: categories.length },
     categories,
-    deals: deals.items.slice(0, 6),
+    // A featured deal is not repeated in the list under it.
+    deals: deals.items.filter((d) => !featuredIds.has(d.id)).slice(0, 6),
     featuredDeals,
     // "Popular" here means the brands with the most active deals: a fact from the data, not traffic.
     brands: [...brands].filter((b) => b.activeDeals > 0).sort((a, b) => b.activeDeals - a.activeDeals || a.name.localeCompare(b.name)).slice(0, 8),
@@ -606,6 +628,17 @@ export async function resolveGo(brandId: string): Promise<string | null> {
   const brand = c.brands.find((b) => b.id === brandId);
   if (!brand?.hasAffiliate) return null;
   return affiliateUrls.get(brand.id) ?? null;
+}
+
+/**
+ * The website /logo/<id>/ may read a logo from: the tool's own domain (from its Tools row), only while its Sheet
+ * logo_url is empty. Null for unknown ids, tools that have a logo_url, and tools without a usable site.
+ */
+export async function logoSiteOf(brandId: string): Promise<string | null> {
+  const { catalog: c } = await getParsedCatalog();
+  const brand = c.brands.find((b) => b.id === brandId);
+  if (!brand?.domain || brand.logoUrl !== siteLogoPath(brand.id)) return null;
+  return brand.domain;
 }
 
 /* ----------------------------------------- Sitemap ----------------------------------------- */

@@ -20,7 +20,7 @@ describe("only checked deals are promoted", () => {
     const all = (await listDeals()).items;
     expect(all.length).toBeGreaterThan(0);
     expect(all.every((d) => d.verification !== "unverified")).toBe(true);
-    expect((await listFeaturedDeals(10)).every((d) => d.verification !== "unverified")).toBe(true);
+    expect((await listFeaturedDeals({ limit: 8 })).every((d) => d.verification !== "unverified")).toBe(true);
     expect((await listDeals({ verification: "unverified" })).total).toBe(0);
     for (const q of ["off", "deal", "code"]) expect((await search(q)).deals.every((d) => d.verification !== "unverified")).toBe(true);
     const listed = new Set((await sitemapData()).deals.map((d) => d.slug));

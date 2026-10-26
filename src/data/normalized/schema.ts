@@ -30,7 +30,7 @@ export const HEADERS: Record<NormalizedTab, readonly string[]> = {
   Tool_Alternatives: ["alternative_id", "tool_id", "alternative_tool_id", "relationship_type", "display_order", "created_at"],
   Deals: [
     "deal_id", "tool_id", "title", "coupon_code", "discount", "affiliate_url", "starts_at", "expires_at",
-    "verification_status", "publish_status", "source_url", "created_at", "updated_at",
+    "verification_status", "publish_status", "source_url", "created_at", "updated_at", "is_featured", "featured_order",
   ],
   Blog_Posts: [
     "post_id", "title", "slug", "excerpt", "content", "author", "published_at", "updated_at", "status", "seo_title", "seo_description",
@@ -54,10 +54,21 @@ export const PRIMARY_KEYS: Record<NormalizedTab, string> = {
 };
 
 /**
- * Columns added after the first release of the layout. A Sheet created before them still reads (they are treated as
- * empty); run `npm run db:migrate-blog` to add them to the Sheet.
+ * Columns a Sheet may leave out; a missing one reads as empty. Three kinds:
+ * - added after the first release (Blog_Posts source_url/post_type/tool_id, Deals is_featured/featured_order);
+ * - removed from the live Sheet on 2026-10-26: Tools.official_url (its URLs moved to Tools.affiliate_url, the one
+ *   link column), Tools.description/created_at/updated_at, and the Deals columns other than
+ *   deal_id/tool_id/title/coupon_code/discount/expires_at.
+ * Every other column of HEADERS is required: without it the tab is ignored and reported.
  */
-export const OPTIONAL_HEADERS: Partial<Record<NormalizedTab, readonly string[]>> = { Blog_Posts: ["source_url", "post_type", "tool_id"] };
+export const OPTIONAL_HEADERS: Partial<Record<NormalizedTab, readonly string[]>> = {
+  Blog_Posts: ["source_url", "post_type", "tool_id"],
+  Tools: ["description", "official_url", "created_at", "updated_at"],
+  Deals: ["affiliate_url", "starts_at", "verification_status", "publish_status", "source_url", "created_at", "updated_at", "is_featured", "featured_order"],
+};
+
+/** Tabs a Sheet may leave out (read as empty). The live Sheet removed both on 2026-10-26. */
+export const OPTIONAL_TABS: readonly NormalizedTab[] = ["Tool_Alternatives", "Import_Log"];
 
 /**
  * Editorial columns a Tools row MAY have, added by hand at the end of the tab when someone has checked the tool

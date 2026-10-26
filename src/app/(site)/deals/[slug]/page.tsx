@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
+import { FeaturedDeals } from "@/components/deals/FeaturedDeals";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DealList } from "@/components/cards/cards";
 import { CopyCode } from "@/components/ui/CopyCode";
 import { BrandLogo, Breadcrumbs, GoLink, JsonLd, VerificationStatus } from "@/components/ui/bits";
-import { getDeal, isPromotable } from "@/data/repository";
+import { getDeal, isPromotable, listFeaturedDeals } from "@/data/repository";
 import { formatDay } from "@/lib/dates";
 import { getSiteUrl } from "@/lib/env";
 import { breadcrumbs } from "@/lib/jsonld";
@@ -40,6 +41,7 @@ export default async function DealPage({ params }: Props) {
   const data = await getDeal((await params).slug);
   if (!data) notFound();
   const { deal, related } = data;
+  const featured = await listFeaturedDeals({ categories: deal.brand.categories, exclude: [deal.id, ...related.map((d) => d.id)] });
   const crumbs = [
     { name: "Home", path: "/" },
     { name: "Deals", path: "/deals/" },
@@ -157,12 +159,12 @@ export default async function DealPage({ params }: Props) {
                   <p className="muted">No code needed: the discount applies on {deal.brand.name}&apos;s site.</p>
                 )}
                 {deal.brand.hasAffiliate ? (
-                  <GoLink brandId={deal.brand.id} enabled offer={deal.id} from="deal-page" variant={isPromotable(deal) ? "primary" : "ghost"}>
-                    {isPromotable(deal) ? "Get deal" : `Visit ${deal.brand.name}`}
+                  <GoLink brandId={deal.brand.id} enabled offer={deal.id} from="deal-page" variant={isPromotable(deal) ? "dark" : "ghost"}>
+                    {isPromotable(deal) ? "Get Deal" : `Visit ${deal.brand.name}`}
                   </GoLink>
                 ) : (
                   <GoLink brandId={deal.brand.id} enabled={false}>
-                    Get deal
+                    Get Deal
                   </GoLink>
                 )}
                 <p className="offer-terms">
@@ -192,6 +194,7 @@ export default async function DealPage({ params }: Props) {
           <DealList deals={related} />
         </section>
       ) : null}
+      <FeaturedDeals className="section" deals={featured} id="page-featured" />
     </div>
   );
 }

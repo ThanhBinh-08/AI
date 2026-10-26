@@ -65,17 +65,38 @@ export function GoLink({ brandId, enabled, children, variant = "primary", size, 
   offer?: string | null;
   from?: Placement;
 }) {
-  if (!enabled) {
-    return <span className={`cta-off${size ? " sm" : ""}`}>No partner link yet</span>;
+  return (
+    <OutboundLink href={enabled ? goHref(brandId, { offer, from }) : null} variant={variant} size={size} brand={brandId} offer={offer} from={from}>
+      {children}
+    </OutboundLink>
+  );
+}
+
+/**
+ * The outbound anchor itself, for callers that already hold a /go/ link (built server-side by goHref). `href` null →
+ * the "no partner link" note, never a substitute destination.
+ */
+export function OutboundLink({ href, children, variant = "primary", size, brand, offer, from, unavailable = "No partner link yet" }: {
+  href: string | null;
+  children: ReactNode;
+  variant?: "primary" | "dark" | "ghost";
+  size?: "sm";
+  brand?: string;
+  offer?: string | null;
+  from?: Placement;
+  unavailable?: string;
+}) {
+  if (!href || !href.startsWith("/go/")) {
+    return <span className={`cta-off${size ? " sm" : ""}`}>{unavailable}</span>;
   }
   return (
     <a
       className={`btn btn-${variant}${size ? ` btn-${size}` : ""}`}
-      href={goHref(brandId, { offer, from })}
+      href={href}
       rel="sponsored nofollow noopener"
       target="_blank"
       data-track="affiliate_click"
-      data-brand={brandId}
+      data-brand={brand}
       data-offer={offer ?? undefined}
       data-placement={from}
     >

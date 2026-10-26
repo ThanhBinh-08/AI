@@ -32,6 +32,10 @@ export function records(cells: string[][]): Rec[] {
 
 const ID_RE = /^[A-Za-z0-9_-]{1,64}$/;
 const bool = (v: string | undefined) => /^(true|yes|1)$/i.test((v ?? "").trim());
+/** Deals.is_featured: only an explicit TRUE (a Sheets checkbox reads as TRUE) picks a deal. */
+const isFeaturedFlag = (v: string | undefined) => /^true$/i.test((v ?? "").trim());
+/** Deals.featured_order: 1, 2, 3... (at most 4 digits). 0, negatives, decimals and text are not an order. */
+const FEATURED_ORDER_RE = /^[1-9]\d{0,3}$/;
 
 export interface IntegrityReport {
   issues: Issue[];
@@ -192,6 +196,14 @@ export interface AdaptOptions {
   now?: Date;
 }
 
+/**
+ * The URL every "get link" / "visit" CTA of a tool redirects to (through /go/<tool_id>/): Tools.affiliate_url when
+ * filled, otherwise Tools.official_url of the same row. Never another row's URL, never a deal-level URL.
+ */
+export function toolLink(t: Record<string, string | undefined>): string {
+  return (t.affiliate_url ?? "").trim() || (t.official_url ?? "").trim();
+}
+
 const hostOf = (url: string): string => {
   const u = httpsUrl(url);
   return u ? u.hostname.replace(/^www\./, "") : "";
@@ -231,21 +243,24 @@ export function adaptNormalized(raw: NormalizedRaw, opts: AdaptOptions): { tabs:
     "product_id", "brand_id", "name", "slug", "description", "image_url", "category", "pricing", "pricing_checked_at", "pricing_source_url",
     "features", "use_cases", "pros", "cons", "status", "verification", "verified_at", "source_name", "source_url", "official_url", "platforms",
   ]];
-  tabs.Coupons = [["coupon_id", "brand_id", "discount", "code", "title", "terms", "expires_at", "source_url", "verification_status", "verified_at", "status"]];
+  tabs.Coupons = [["coupon_id", "brand_id", "discount", "code", "title", "terms", "expires_at", "source_url", "verification_status", "verified_at", "status", "sample", "featured", "featured_order"]];
   tabs.Content = [["content_id", "type", "title", "slug", "excerpt", "body", "seo_title", "seo_description", "status", "published_at", "updated_at", "author", "brand_id", "product_id", "product_ids", "post_type"]];
 
   for (const t of tools) {
     const cats = (catsByTool.get(t.tool_id!) ?? []).sort((a, b) => Number(b.primary) - Number(a.primary));
     const isPreview = t.data_source_type === "preview_import" || t.publish_status === "preview";
     const st = status(t.publish_status!);
-    // A filled affiliate_url is the owner's approval; sample data never carries one.
-    const affiliate = !isPreview && t.affiliate_url ? t.affiliate_url : "";
     // Sample data is never "verified", whatever the row says.
     const verified = !isPreview && t.verification_status === "verified";
     const updated = parseDay(t.updated_at ?? "") ?? "";
-    const official = hostOf(t.official_url ?? "");
-    // Fictional rows made to test the layout (not real products): named as such, or on a reserved example domain.
-    const sample = /fictional|sample/i.test(t.source_name ?? "") || /(^|\.)example\.(com|org|net)$/i.test(official);
+    // The tool's domain: from official_url when the Sheet still has it, otherwise from its link (affiliate_url).
+    const official = hostOf(t.official_url || toolLink(t));
+    // Fictional rows made to test the layout (not real products), marked by the editor in source_name. A reserved
+    // example domain alone does not hide a row: UI-test rows may use one until real data replaces them.
+    const sample = /fictional|sample/i.test(t.source_name ?? "");
+    // The tool's one outbound link, from its own Tools row (tool_id): affiliate_url (official_url on older Sheets).
+    // Fictional rows get none.
+    const affiliate = sample ? "" : toolLink(t);
     // Editorial lists (features, pros...) are shown only once someone has checked the tool.
     const editorial = (column: string) => (verified ? t[column] ?? "" : "");
     tabs.Brands.push([
@@ -257,8 +272,23 @@ export function adaptNormalized(raw: NormalizedRaw, opts: AdaptOptions): { tabs:
       cats.map((c) => c.slug).join(","), verified ? t.pricing_details ?? "" : "", verified ? updated : "", "",
       editorial("features"), editorial("use_cases"), editorial("pros"), editorial("cons"), st,
       verified ? "verified" : "unverified", verified ? updated : "", sample ? "" : t.source_name ?? "", sample ? "" : t.source_url ?? "",
-      sample ? "" : t.official_url ?? "", editorial("platforms"),
+      affiliate, editorial("platforms"),
     ]);
+  }
+
+  // Deals.is_featured (TRUE/FALSE) and Deals.featured_order (positive whole number, smallest first). A bad value is
+  // reported and read as "not featured" / "no order"; the deal itself stays usable.
+  const featuredOrders = new Map<number, string[]>();
+  for (const d of ok("Deals")) {
+    const line = Number(d.__line);
+    const flag = (d.is_featured ?? "").trim();
+    if (flag && !/^(true|false)$/i.test(flag)) issues.push({ tab: "Deals", row: line, message: `is_featured "${flag}" is not TRUE or FALSE; read as FALSE` });
+    const order = (d.featured_order ?? "").trim();
+    if (order && !FEATURED_ORDER_RE.test(order)) issues.push({ tab: "Deals", row: line, message: `featured_order "${order}" is not a positive whole number; sorted after the ordered deals` });
+    if (isFeaturedFlag(flag) && FEATURED_ORDER_RE.test(order)) featuredOrders.set(Number(order), [...(featuredOrders.get(Number(order)) ?? []), d.deal_id!]);
+  }
+  for (const [n, ids] of featuredOrders) {
+    if (ids.length > 1) issues.push({ tab: "Deals", row: 1, message: `featured_order ${n} is used by ${ids.join(", ")}; they are ordered by deal_id` });
   }
 
   for (const d of ok("Deals")) {
@@ -268,13 +298,15 @@ export function adaptNormalized(raw: NormalizedRaw, opts: AdaptOptions): { tabs:
     const starts = d.starts_at ? parseDay(d.starts_at) : null;
     if (d.starts_at && !starts) { issues.push({ tab: "Deals", row: Number(d.__line), message: `starts_at "${d.starts_at}" is not a date (use YYYY-MM-DD); row skipped` }); continue; }
     const notStarted = starts !== null && starts > now.toISOString().slice(0, 10);
-    const st = notStarted ? "draft" : status(d.publish_status!);
+    // Without a publish_status column (the live Sheet since 2026-10-26) a deal is as public as its tool.
+    const st = notStarted ? "draft" : status(d.publish_status === undefined ? tool.publish_status! : d.publish_status);
     // A sample deal (preview row, or a deal of a preview tool) is never shown as checked.
     const sampleDeal = (d.publish_status ?? "").toLowerCase() === "preview" || tool.publish_status === "preview" || tool.data_source_type === "preview_import";
     const verified = !sampleDeal && d.verification_status === "verified";
     tabs.Coupons.push([
       d.deal_id!, d.tool_id!, d.discount!, d.coupon_code ?? "", d.title ?? "", "", d.expires_at ?? "", d.source_url ?? "",
       verified ? "source_verified" : "unverified", verified ? parseDay(d.updated_at ?? "") ?? "" : "", st === "published" ? "published" : "draft",
+      sampleDeal ? "1" : "", isFeaturedFlag(d.is_featured) ? "1" : "", FEATURED_ORDER_RE.test((d.featured_order ?? "").trim()) ? d.featured_order!.trim() : "",
     ]);
   }
 

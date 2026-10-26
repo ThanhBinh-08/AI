@@ -13,3 +13,5 @@ local-data/
 backups/
 .next-preview/
 .next-build/
+.vercel
+.env*
