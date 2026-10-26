@@ -96,13 +96,13 @@ describe("CopyCode", () => {
 
 describe("GoLink and status", () => {
   it("is a sponsored /go/ link labelled for measurement, or a note (no button, no substitute URL) without one", () => {
-    const { rerender } = render(<GoLink brandId="quill" enabled offer="Q1" from="tool-offer">Get deal</GoLink>);
+    const { rerender } = render(<GoLink brandId="quill" enabled offer="Q1" from="tool-offer">Get Deal</GoLink>);
     const a = screen.getByRole("link");
     expect(a).toHaveAttribute("href", "/go/quill/?o=Q1&p=tool-offer");
     expect(a.getAttribute("rel")).toContain("sponsored");
     expect(a).toHaveAttribute("data-track", "affiliate_click");
     expect(a).toHaveAttribute("data-offer", "Q1");
-    rerender(<GoLink brandId="quill" enabled={false}>Get deal</GoLink>);
+    rerender(<GoLink brandId="quill" enabled={false}>Get Deal</GoLink>);
     expect(screen.queryByRole("link")).toBeNull();
     expect(screen.queryByRole("button")).toBeNull();
     expect(screen.getByText("No partner link yet")).toBeInTheDocument();

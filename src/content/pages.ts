@@ -106,7 +106,7 @@ If something here is wrong or out of date, [tell us](/contact/). We recheck repo
 
 ## Which links are affiliate links
 
-Buttons such as **Get deal**, **Go to** and **Visit** send you through a redirect on our own domain (addresses starting with \`/go/\`) to the brand's affiliate link. These links are marked as sponsored for search engines. Links to our own pages are not affiliate links.
+Buttons such as **Get Deal**, **Go to** and **Visit** send you through a redirect on our own domain (addresses starting with \`/go/\`) to the brand's affiliate link. These links are marked as sponsored for search engines. Links to our own pages are not affiliate links.
 
 ## What it costs you
 

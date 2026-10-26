@@ -81,7 +81,8 @@ describe("tool page data", () => {
     expect(page.tool.features).toEqual([]);
     expect(page.tool.platforms).toEqual([]);
     expect(page.tool.pros).toEqual([]);
-    expect(page.tool.brand.hasAffiliate).toBe(false);
+    // Its official_url is its outbound link (through /go/<tool_id>/).
+    expect(page.tool.brand.hasAffiliate).toBe(true);
     expect(page.tool.listingSource).toEqual({ name: "AI Use Cases (aiusecases.dev, CC BY 4.0)", url: "https://aiusecases.dev/tool/listed/" });
     expect(page.tool.officialUrl).toBe("https://listed.test-brand.io/");
   });

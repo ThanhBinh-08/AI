@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Manrope } from "next/font/google";
 import "@/styles/hero.css";
 import "@/styles/site.css";
+import "@/styles/deals.css";
 import { Footer } from "@/components/layout/Footer";
 import { JsonLd } from "@/components/ui/bits";
 import { SITE } from "@/config/site";

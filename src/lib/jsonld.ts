@@ -59,7 +59,7 @@ export function article(site: string, post: Post, path: string, opts: { image?: 
     ...(post.updatedAt ? { dateModified: post.updatedAt } : post.publishedAt ? { dateModified: post.publishedAt } : {}),
     author: person ? { "@type": "Person", name: person } : { "@id": `${site}/#organization` },
     publisher: { "@id": `${site}/#organization` },
-    image: opts.image ?? `${site}/media/og-default.jpg`,
+    image: opts.image ? new URL(opts.image, site).toString() : `${site}/media/og-default.jpg`,
   };
 }
 

@@ -8,6 +8,9 @@ export const SITE = {
     "An independent directory of AI tools and software discount codes. Each deal shows its source, its check status and its expiry date.",
 } as const;
 
+/** The site's own logo (header, footer). Stands in on covers and plates that have no tool logo. */
+export const SITE_LOGO = "/brand/logo.webp";
+
 /**
  * The byline and the "About the author" panel. By default the site itself is the author: no invented person.
  * To publish under your own name, set NEXT_PUBLIC_AUTHOR_NAME / NEXT_PUBLIC_AUTHOR_ROLE / NEXT_PUBLIC_AUTHOR_BIO.

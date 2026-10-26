@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
+import { FeaturedDeals } from "@/components/deals/FeaturedDeals";
 import Link from "next/link";
 import { Feature, KIND_PLURAL, MakerStrip, StoryGrid } from "@/components/blog/blog";
 import { AutoSubmit } from "@/components/ui/AutoSubmit";
 import { ChipRail } from "@/components/ui/ChipRail";
 import { Breadcrumbs, EmptyState, Pagination, SectionHead } from "@/components/ui/bits";
-import { blogFacets, listBlog } from "@/data/repository";
+import { blogFacets, listBlog, listFeaturedDeals } from "@/data/repository";
 import { categoryParam, enumParam, one, pageParam, withQuery, type SearchParams } from "@/lib/params";
 import { pageMeta } from "@/lib/seo";
 import { toneOfCategory } from "@/lib/tone";
@@ -32,6 +33,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 }
 
 export default async function BlogPage({ searchParams }: Props) {
+  const featured = await listFeaturedDeals();
   const f = readFilters(await searchParams);
   const filtered = Boolean(f.kind || f.category || f.q);
   const home = !filtered && f.page === 1;
@@ -124,6 +126,8 @@ export default async function BlogPage({ searchParams }: Props) {
       </section>
 
       <MakerStrip />
+      {/* The Blog stays editorial: cards link to each deal page, without a code or an outbound button. */}
+      <FeaturedDeals className="section" deals={featured} id="page-featured" editorial />
     </div>
   );
 }

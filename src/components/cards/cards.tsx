@@ -23,14 +23,14 @@ export function endsLabel(day: string | null): { text: string; urgent: boolean }
 }
 
 /**
- * The one primary action of a deal: "Get deal" through the brand's approved affiliate link when the deal is live and
+ * The one primary action of a deal: "Get Deal" through the brand's approved affiliate link when the deal is live and
  * checked; otherwise the deal's own page (or the brand's deals once it has ended). Never a substitute outbound URL.
  */
 function DealCta({ deal, size, variant, from }: { deal: DealView; size?: "sm"; variant: "primary" | "dark"; from: Placement }) {
   if (deal.active && deal.verification !== "unverified" && deal.brand.hasAffiliate) {
     return (
       <GoLink brandId={deal.brand.id} enabled size={size} variant={variant} offer={deal.id} from={from}>
-        Get deal
+        Get Deal
       </GoLink>
     );
   }
@@ -38,41 +38,6 @@ function DealCta({ deal, size, variant, from }: { deal: DealView; size?: "sm"; v
     <Link className={`btn btn-ghost${size ? ` btn-${size}` : ""}`} href={deal.active ? `/deals/${deal.slug}/` : `/brands/${deal.brand.slug}/`}>
       {deal.active ? "View deal" : `See current ${deal.brand.name} deals`}
     </Link>
-  );
-}
-
-/**
- * A featured deal drawn as a paper ticket: dark stub with the number in the dot-matrix face, perforation,
- * then brand, title, check status, end date, code and action. `lead` is the larger one.
- */
-export function DealTicket({ deal, variant = "side" }: { deal: DealView; variant?: "lead" | "side" }) {
-  const [big, rest] = splitDiscount(deal.discount);
-  const ends = endsLabel(deal.expiresAt);
-  const H = variant === "lead" ? "h2" : "h3";
-  return (
-    <li className={`ticket ${variant}`} data-impression data-brand={deal.brand.id} data-offer={deal.id} data-placement="deal-ticket">
-      <div className="ticket-stub">
-        <span className="ticket-big">{big}</span>
-        {rest ? <span className="ticket-rest">{rest}</span> : null}
-      </div>
-      <div className="ticket-main">
-        <div className="ticket-brand">
-          <BrandLogo name={deal.brand.name} src={deal.brand.logoUrl} size="md" />
-          <Link href={`/brands/${deal.brand.slug}/`}>{deal.brand.name}</Link>
-        </div>
-        <H>
-          <Link href={`/deals/${deal.slug}/`}>{deal.title}</Link>
-        </H>
-        <div className="ticket-meta">
-          <VerificationStatus value={deal.verification} at={deal.verifiedAt} />
-          <span className={ends.urgent ? "urgent" : undefined}>{ends.text}</span>
-        </div>
-        <div className="ticket-actions">
-          {deal.code ? <CopyCode code={deal.code} tone="paper" brand={deal.brand.id} offer={deal.id} placement="deal-ticket" /> : null}
-          <DealCta deal={deal} variant="dark" from="deal-ticket" />
-        </div>
-      </div>
-    </li>
   );
 }
 
@@ -101,7 +66,7 @@ export function DealRow({ deal, headingLevel = 3 }: { deal: DealView; headingLev
       </div>
       <div className="deal-actions">
         {deal.active && deal.code ? <CopyCode code={deal.code} brand={deal.brand.id} offer={deal.id} placement="deal-row" /> : null}
-        <DealCta deal={deal} size="sm" variant={deal.code ? "dark" : "primary"} from="deal-row" />
+        <DealCta deal={deal} size="sm" variant="dark" from="deal-row" />
       </div>
     </li>
   );

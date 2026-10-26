@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DealList, PostTile, ToolTile } from "@/components/cards/cards";
+import { FeaturedDeals } from "@/components/deals/FeaturedDeals";
 import { BrandLogo, Breadcrumbs, EmptyState, GoLink, JsonLd } from "@/components/ui/bits";
 import { categoryBySlug } from "@/config/categories";
-import { getBrand } from "@/data/repository";
+import { getBrand, listFeaturedDeals } from "@/data/repository";
 import { getSiteUrl } from "@/lib/env";
 import { breadcrumbs } from "@/lib/jsonld";
 import { pageMeta } from "@/lib/seo";
@@ -36,6 +37,9 @@ export default async function BrandPage({ params }: Props) {
   const data = await getBrand((await params).slug);
   if (!data) notFound();
   const { brand, deals, expired, tools, comparisons } = data;
+  // Featured deals of other brands, same categories first (this brand's own deals are listed above them).
+  const featured = await listFeaturedDeals({ categories: brand.categories, exclude: deals.map((d) => d.id) });
+  const otherFeatured = featured.filter((d) => d.brandId !== brand.id);
   const crumbs = [
     { name: "Home", path: "/" },
     { name: "Brands", path: "/brands/" },
@@ -95,6 +99,8 @@ export default async function BrandPage({ params }: Props) {
           </EmptyState>
         )}
       </section>
+
+      <FeaturedDeals className="section" deals={otherFeatured} id="brand-featured" />
 
       {tools.length > 0 ? (
         <section className="section">

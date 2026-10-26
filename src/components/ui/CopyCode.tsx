@@ -1,12 +1,15 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { isCouponFreeRoute } from "@/lib/coupon-rules";
 
 type CopyState = "idle" | "copied" | "failed";
 
 /**
  * Copies the exact stored coupon code. The code stays visible and selectable, so it can always be copied by hand;
  * pressing Copy never navigates. `brand`/`offer`/`placement` only label the copy for measurement.
+ * On Blog routes it renders nothing: articles never carry a code or a copy control.
  */
 export function CopyCode({ code, size, tone, brand, offer, placement }: {
   code: string;
@@ -18,6 +21,8 @@ export function CopyCode({ code, size, tone, brand, offer, placement }: {
 }) {
   const [state, setState] = useState<CopyState>("idle");
   const timer = useRef<number | undefined>(undefined);
+
+  const pathname = usePathname();
 
   useEffect(() => () => window.clearTimeout(timer.current), []);
 
@@ -32,10 +37,12 @@ export function CopyCode({ code, size, tone, brand, offer, placement }: {
     timer.current = window.setTimeout(() => setState("idle"), 2200);
   }
 
+  if (isCouponFreeRoute(pathname)) return null;
+
   const label = state === "copied" ? "Copied" : state === "failed" ? "Select it" : "Copy";
   return (
     <span className={`code-copy${size ? ` ${size}` : ""}${tone ? ` ${tone}` : ""}`}>
-      <code>{code}</code>
+      <code title={code}>{code}</code>
       <button
         type="button"
         onClick={copy}

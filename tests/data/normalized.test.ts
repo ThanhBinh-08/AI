@@ -15,8 +15,8 @@ function workbook(over: Partial<Record<(typeof NORMALIZED_TABS)[number], Record<
   };
   table("Categories", over.Categories ?? CATEGORY_SEED.map((c, i) => ({ category_id: c.id, category_name: c.name, slug: c.slug, display_order: String(i + 1), status: "active" })));
   table("Tools", over.Tools ?? [
-    { tool_id: "T0001", name: "Sample Writer", slug: "sample-writer", short_description: "Fictional writing tool.", official_url: "https://writer.example.com", publish_status: "published", data_source_type: "manually_entered", verification_status: "verified", updated_at: "2026-10-01", affiliate_url: "https://writer.example.com/?ref=me" },
-    { tool_id: "T0002", name: "Sample Painter", slug: "sample-painter", short_description: "Fictional image tool.", official_url: "https://painter.example.com", publish_status: "preview", data_source_type: "preview_import", verification_status: "unverified" },
+    { tool_id: "T0001", name: "Sample Writer", slug: "sample-writer", short_description: "Fictional writing tool.", official_url: "https://writer-tool.io", publish_status: "published", data_source_type: "manually_entered", verification_status: "verified", updated_at: "2026-10-01", affiliate_url: "https://writer-tool.io/?ref=me" },
+    { tool_id: "T0002", name: "Sample Painter", slug: "sample-painter", short_description: "Fictional image tool.", official_url: "https://painter.example.com", source_name: "Fictional sample", publish_status: "preview", data_source_type: "preview_import", verification_status: "unverified" },
   ]);
   table("Tool_Categories", over.Tool_Categories ?? [
     { tool_category_id: "TC-T0001-CAT001", tool_id: "T0001", category_id: "CAT001", is_primary: "TRUE" },
@@ -114,11 +114,24 @@ describe("adapter → site catalog", () => {
     expect(preview.hasAffiliate).toBe(false);
   });
 
-  it("uses the tool's own affiliate_url only for a published, non-preview tool", () => {
+  it("links each tool to the URL in its own Tools row: affiliate_url when filled, else official_url; never for fictional rows", () => {
     const parsed = parseCatalog(adaptNormalized(workbook(), { allowPreview: true, now: NOW }).tabs, NOW, []);
     expect(parsed.catalog.brands.find((b) => b.id === "T0001")?.hasAffiliate).toBe(true);
-    expect(parsed.affiliateUrls.get("T0001")).toBe("https://writer.example.com/?ref=me");
+    expect(parsed.affiliateUrls.get("T0001")).toBe("https://writer-tool.io/?ref=me");
+    // T0002 is marked fictional (source_name): no outbound link even though it has an official_url.
     expect(parsed.affiliateUrls.has("T0002")).toBe(false);
+    expect(parsed.catalog.brands.find((b) => b.id === "T0002")?.hasAffiliate).toBe(false);
+  });
+
+  it("uses official_url as the link when affiliate_url is empty, including imported (preview) tools", () => {
+    const raw = workbook({ Tools: [
+      { tool_id: "T0003", name: "Real Tool", slug: "real-tool", official_url: "https://realtool.ai/app", publish_status: "preview", data_source_type: "preview_import" },
+      { tool_id: "T0004", name: "Other Tool", slug: "other-tool", official_url: "https://othertool.com", publish_status: "published", data_source_type: "manually_entered" },
+    ] });
+    const parsed = parseCatalog(adaptNormalized(raw, { allowPreview: true, now: NOW }).tabs, NOW, []);
+    expect(parsed.affiliateUrls.get("T0003")).toBe("https://realtool.ai/app");
+    expect(parsed.affiliateUrls.get("T0004")).toBe("https://othertool.com/");
+    expect(parsed.catalog.brands.find((b) => b.id === "T0003")?.hasAffiliate).toBe(true);
   });
 
   it("maps category relationships and never renders an unverified price", () => {
@@ -418,5 +431,26 @@ describe("source citation", () => {
     const body = parseCatalog(adaptNormalized(raw, { allowPreview: true, now: NOW }).tabs, NOW, []).catalog.posts[0]!.body;
     expect(body).toContain("Listing data: AI Use Cases (aiusecases.dev, CC BY 4.0).");
     expect(body).not.toContain("(aiusecases.dev) (");
+  });
+});
+
+describe("deal logos follow the deal's tool_id", () => {
+  const tools = (logo: string) => [
+    { tool_id: "T0001", name: "Sample Writer", slug: "sample-writer", short_description: "Fictional writing tool.", logo_url: logo, affiliate_url: "https://writer-tool.io/", publish_status: "published", data_source_type: "manually_entered", verification_status: "verified", updated_at: "2026-10-01" },
+    { tool_id: "T0002", name: "Sample Painter", slug: "sample-painter", short_description: "Fictional image tool.", logo_url: "https://cdn.painter-tool.io/other.png", affiliate_url: "https://painter-tool.io/", publish_status: "published", data_source_type: "manually_entered", verification_status: "verified", updated_at: "2026-10-01" },
+  ];
+  const deals = [{ deal_id: "D1", tool_id: "T0001", publish_status: "published", title: "Writer annual", coupon_code: "SAVE", discount: "20% off", expires_at: "2026-12-01", verification_status: "verified", updated_at: "2026-10-20" }];
+  const logoOfDeal = (logo: string) => {
+    const { catalog } = parseCatalog(adaptNormalized(workbook({ Tools: tools(logo), Deals: deals }), { allowPreview: true, now: NOW }).tabs, NOW, []);
+    const coupon = catalog.coupons.find((c) => c.id === "D1")!;
+    return catalog.brands.find((b) => b.id === coupon.brandId)!.logoUrl;
+  };
+
+  it("uses Tools.logo_url of the deal's own tool, never another tool's", () => {
+    expect(logoOfDeal("https://cdn.writer-tool.io/logo.png")).toBe("https://cdn.writer-tool.io/logo.png");
+  });
+
+  it("falls back to the tool's website logo when Tools.logo_url is empty", () => {
+    expect(logoOfDeal("")).toBe("/logo/T0001/");
   });
 });

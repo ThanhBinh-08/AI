@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { BrandTile, DealList, PostTile, ToolTile } from "@/components/cards/cards";
+import { FeaturedDeals } from "@/components/deals/FeaturedDeals";
 import { EmptyState, PageHead } from "@/components/ui/bits";
-import { MAX_QUERY_LENGTH, search, type SearchResults } from "@/data/repository";
+import { listFeaturedDeals, MAX_QUERY_LENGTH, search, type SearchResults } from "@/data/repository";
 import { one, type SearchParams } from "@/lib/params";
 import { withinLimit } from "@/lib/rate-limit";
 
@@ -41,6 +42,11 @@ export default async function SearchPage({ searchParams }: Props) {
     if (withinLimit(await headers(), "search")) results = await search(q);
     else limited = true;
   }
+  // Featured deals in the categories the results belong to come first, minus deals already listed.
+  const categories = results
+    ? [...new Set([...results.tools.flatMap((t) => t.categories), ...results.brands.flatMap((b) => b.categories), ...results.categories.map((c) => c.slug), ...results.deals.flatMap((d) => d.brand.categories)])]
+    : [];
+  const featured = await listFeaturedDeals({ categories, exclude: results?.deals.map((d) => d.id) ?? [] });
 
   return (
     <div className="container">
@@ -130,6 +136,7 @@ export default async function SearchPage({ searchParams }: Props) {
           No tool, brand, deal or guide matches &ldquo;{q}&rdquo;. Try a shorter word or the task you want done.
         </EmptyState>
       )}
+      <FeaturedDeals className="section" deals={featured} id="search-featured" />
     </div>
   );
 }

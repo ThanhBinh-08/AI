@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import { FeaturedDeals } from "@/components/deals/FeaturedDeals";
 import Link from "next/link";
 import { EmptyState, PageHead } from "@/components/ui/bits";
-import { listAlternatives } from "@/data/repository";
+import { listAlternatives, listFeaturedDeals } from "@/data/repository";
 import { pageMeta } from "@/lib/seo";
 
 export const revalidate = 300;
@@ -17,6 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function AlternativesIndex() {
+  const featured = await listFeaturedDeals();
   const items = await listAlternatives();
   return (
     <div className="container">
@@ -46,6 +48,7 @@ export default async function AlternativesIndex() {
           These pages are written once a tool and at least one alternative have been reviewed.
         </EmptyState>
       )}
+      <FeaturedDeals className="section" deals={featured} id="page-featured" />
     </div>
   );
 }

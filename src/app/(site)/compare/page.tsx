@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import { FeaturedDeals } from "@/components/deals/FeaturedDeals";
 import Link from "next/link";
 import { PostTile } from "@/components/cards/cards";
 import { EmptyState, PageHead } from "@/components/ui/bits";
-import { listComparisons } from "@/data/repository";
+import { listComparisons, listFeaturedDeals } from "@/data/repository";
 import { pageMeta } from "@/lib/seo";
 
 export const revalidate = 300;
@@ -19,6 +20,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function ComparePage() {
+  const featured = await listFeaturedDeals();
   const items = await listComparisons();
   return (
     <div className="container">
@@ -38,6 +40,7 @@ export default async function ComparePage() {
           Comparisons are published once at least two of the tools have been reviewed.
         </EmptyState>
       )}
+      <FeaturedDeals className="section" deals={featured} id="page-featured" />
     </div>
   );
 }

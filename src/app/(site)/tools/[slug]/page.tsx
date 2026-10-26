@@ -3,11 +3,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import { DealList, endsLabel, splitDiscount, ToolCard } from "@/components/cards/cards";
+import { FeaturedDeals } from "@/components/deals/FeaturedDeals";
 import { CopyCode } from "@/components/ui/CopyCode";
 import { BrandLogo, Breadcrumbs, GoLink, JsonLd } from "@/components/ui/bits";
 import { categoryBySlug } from "@/config/categories";
-import { getTool, isIndexableTool, reviewSlugForTool, toolLogo } from "@/data/repository";
+import { SITE_LOGO } from "@/config/site";
+import { getTool, isIndexableTool, listFeaturedDeals, reviewSlugForTool, toolLogo } from "@/data/repository";
 import { formatDay } from "@/lib/dates";
+import { goHref } from "@/lib/go";
 import { getSiteUrl } from "@/lib/env";
 import { breadcrumbs } from "@/lib/jsonld";
 import { pageMeta } from "@/lib/seo";
@@ -45,7 +48,30 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 const hostOf = (url: string) => new URL(url).hostname.replace(/^www\./, "");
 
-/** Plain reference link to the tool's own site. Not an affiliate link and not styled as a CTA. */
+/**
+ * The tool's own website, as a text link. It goes through /go/<tool_id>/, which redirects to the URL in that tool's
+ * Tools row (affiliate_url, or official_url). Without a usable link the host is shown as plain text.
+ */
+function ToolSiteLink({ tool }: { tool: Tool }) {
+  const host = tool.officialUrl ? hostOf(tool.officialUrl) : tool.name;
+  if (!tool.brand.hasAffiliate) return <>{host}</>;
+  return (
+    <a
+      className="text-link"
+      href={goHref(tool.brand.id, { from: "tool-site" })}
+      rel="sponsored nofollow noopener"
+      target="_blank"
+      data-track="affiliate_click"
+      data-brand={tool.brand.id}
+      data-placement="tool-site"
+    >
+      {host}
+      <span className="sr-only"> (opens in a new tab)</span>
+    </a>
+  );
+}
+
+/** Plain reference link to a listing source (not the tool's site). Not an affiliate link and not styled as a CTA. */
 function OfficialLink({ url, children }: { url: string; children?: ReactNode }) {
   return (
     <a className="text-link" href={url} rel="nofollow noopener noreferrer" target="_blank">
@@ -109,7 +135,8 @@ function LightPlate({ tool, deal }: { tool: Tool; deal: DealView | undefined }) 
     <aside className="tp-plate" aria-label={`${tool.name} offer and link`} style={coverVars(tool.slug, toneOfCategory(tool.categories[0] ?? ""))}>
       <div className="tp-panel" aria-hidden="true">
         <span className="cover-glow" />
-        <BrandLogo name={tool.name} src={logo} size="xl" />
+        {/* No logo for this tool: the site's own logo lights the plate instead of initials. */}
+        <BrandLogo name={tool.name} src={logo ?? SITE_LOGO} size="xl" />
       </div>
       <div className="tp-offer">
         {deal ? (
@@ -123,8 +150,9 @@ function LightPlate({ tool, deal }: { tool: Tool; deal: DealView | undefined }) 
         {affiliate ? (
           <>
             {/* One primary action: the deal when there is one, otherwise a plain visit that promises no discount. */}
-            <GoLink brandId={tool.brand.id} enabled offer={deal?.id} from="tool-offer">
-              {deal ? "Get deal" : `Visit ${tool.name}`}
+            {/* Only Featured deals carry a white Get Deal; everywhere else it is the dark button. */}
+            <GoLink brandId={tool.brand.id} enabled offer={deal?.id} from="tool-offer" variant={deal ? "dark" : "primary"}>
+              {deal ? "Get Deal" : `Visit ${tool.name}`}
             </GoLink>
             <p className="tp-fine">
               {deal ? null : "No discount applies to this link. "}Affiliate link: we may earn a commission at no extra cost to you.{" "}
@@ -145,7 +173,11 @@ export default async function ToolPage({ params }: Props) {
   const data = await getTool((await params).slug);
   if (!data) notFound();
   const { tool, deals, related, relatedDeals, comparisons, alternatives } = data;
-  const profileSlug = await reviewSlugForTool(tool.id);
+  const [profileSlug, featured] = await Promise.all([
+    reviewSlugForTool(tool.id),
+    // Featured deals of the same categories that this page does not already show.
+    listFeaturedDeals({ categories: tool.categories, exclude: [...deals, ...relatedDeals].map((d) => d.id) }),
+  ]);
   const primary = tool.categories[0] ? categoryBySlug(tool.categories[0]) : undefined;
   const crumbs = [
     { name: "Home", path: "/" },
@@ -207,10 +239,10 @@ export default async function ToolPage({ params }: Props) {
             <div className="tp-pending">
               <p className="tp-text">
                 Features, platforms, strengths and limitations appear here once we have checked {tool.name} on its official site
-                {tool.officialUrl ? (
+                {tool.officialUrl || tool.brand.hasAffiliate ? (
                   <>
                     {" "}
-                    (<OfficialLink url={tool.officialUrl} />)
+                    (<ToolSiteLink tool={tool} />)
                   </>
                 ) : null}
                 .
@@ -344,6 +376,13 @@ export default async function ToolPage({ params }: Props) {
         </section>
       ) : null}
 
+      <FeaturedDeals
+        className="tp-featured"
+        deals={featured}
+        id="tp-featured"
+       
+      />
+
       <section className="tp-sources" aria-labelledby="tp-sources">
         <h2 id="tp-sources">Sources and last check</h2>
         <dl>
@@ -357,11 +396,11 @@ export default async function ToolPage({ params }: Props) {
               <dd>{source.url ? <OfficialLink url={source.url}>{source.name}</OfficialLink> : source.name}</dd>
             </div>
           ) : null}
-          {tool.officialUrl ? (
+          {tool.officialUrl || tool.brand.hasAffiliate ? (
             <div>
               <dt>Official site</dt>
               <dd>
-                <OfficialLink url={tool.officialUrl} />
+                <ToolSiteLink tool={tool} />
               </dd>
             </div>
           ) : null}

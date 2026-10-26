@@ -108,7 +108,7 @@ If the answers still favor the annual plan, check our [deals](/deals/) for a cod
 
 ## What happens when you click
 
-Buttons such as **Get deal** or **Visit site** go through a short redirect on our domain (for example \`/go/brand-id/\`). It sends you to the brand's affiliate link, which lets the brand's affiliate network record that the visit came from us. If you then buy, the brand may pay us a commission.
+Buttons such as **Get Deal** or **Visit site** go through a short redirect on our domain (for example \`/go/brand-id/\`). It sends you to the brand's affiliate link, which lets the brand's affiliate network record that the visit came from us. If you then buy, the brand may pay us a commission.
 
 ## Who pays
 

@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
+import { FeaturedDeals } from "@/components/deals/FeaturedDeals";
 import Link from "next/link";
 import { ContactForm } from "@/components/contact/ContactForm";
 import { JsonLd, PageHead } from "@/components/ui/bits";
 import { contactEmail, contactWebhook } from "@/lib/contact";
 import { getSiteUrl } from "@/lib/env";
 import { breadcrumbs } from "@/lib/jsonld";
+import { listFeaturedDeals } from "@/data/repository";
 import { pageMeta } from "@/lib/seo";
 
 export const metadata: Metadata = pageMeta({
@@ -13,7 +15,8 @@ export const metadata: Metadata = pageMeta({
   path: "/contact/",
 });
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const featured = await listFeaturedDeals();
   const email = contactEmail();
   const formEnabled = contactWebhook() !== null;
   const crumbs = [
@@ -54,6 +57,7 @@ export default function ContactPage() {
           </p>
         </aside>
       </div>
+      <FeaturedDeals className="section" deals={featured} id="page-featured" />
     </div>
   );
 }

@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { categoryBySlug } from "@/config/categories";
-import { AUTHOR } from "@/config/site";
+import { AUTHOR, SITE, SITE_LOGO } from "@/config/site";
 import { formatDay } from "@/lib/dates";
-import { monogram } from "@/lib/text";
 import { coverVars, toneOf } from "@/lib/tone";
 import { BrandLogo } from "@/components/ui/bits";
 import type { BlogKind, PostView } from "@/types/catalog";
@@ -15,10 +14,10 @@ export const KIND_PLURAL: Record<BlogKind, string> = { review: "Reviews and prof
 
 const minutes = (p: PostView) => `${p.readingMinutes} min read`;
 
-/** What sits in the middle of a cover: the tool's logo (from its tool_id), else its initials, or a mark for guides and comparisons. */
+/** What sits in the middle of a cover: the tool's logo (from its tool_id); without one, the site's own logo. */
 function Mark({ post }: { post: PostView }) {
   if (post.tool?.logoUrl) return <BrandLogo name={post.tool.name} src={post.tool.logoUrl} size="lg" />;
-  return <>{post.tool ? monogram(post.tool.name) : post.kind === "comparison" ? "vs" : "Aa"}</>;
+  return <BrandLogo name={SITE.name} src={SITE_LOGO} size="lg" />;
 }
 
 /**

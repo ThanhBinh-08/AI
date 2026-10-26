@@ -38,6 +38,8 @@ export function clientKey(headers: Headers): string {
 /** Per client per window. */
 export const LIMITS = {
   go: { limit: 120, windowMs: 60_000 },
+  // A page can show a few dozen logos; each is one request.
+  logo: { limit: 300, windowMs: 60_000 },
   search: { limit: 60, windowMs: 60_000 },
   contact: { limit: 5, windowMs: 600_000 },
   revalidate: { limit: 10, windowMs: 60_000 },

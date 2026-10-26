@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { preload } from "react-dom";
-import { BrandTile, DealList, DealTicket, PostTile, ToolTile } from "@/components/cards/cards";
+import { BrandTile, DealList, PostTile, ToolTile } from "@/components/cards/cards";
+import { FeaturedDeals } from "@/components/deals/FeaturedDeals";
 import { HeroStats, type Stat } from "@/components/home/HeroStats";
 import { HeroVideo } from "@/components/home/HeroVideo";
 import { Header } from "@/components/layout/Header";
@@ -133,16 +134,7 @@ export default async function HomePage() {
             </section>
           ) : null}
 
-          {home.featuredDeals.length > 0 ? (
-            <section className="section">
-              <SectionHead title="Featured deals" intro="Picked by our editors, checked deals first." link={{ href: "/deals/", label: "All deals" }} />
-              <ul className="ticket-band">
-                {home.featuredDeals.map((d, i) => (
-                  <DealTicket key={d.id} deal={d} variant={i === 0 ? "lead" : "side"} />
-                ))}
-              </ul>
-            </section>
-          ) : null}
+          <FeaturedDeals className="section" deals={home.featuredDeals} id="home-featured" intro="Picked by our editors from deals we have checked." />
 
           {home.deals.length > 0 ? (
             <section className="section">

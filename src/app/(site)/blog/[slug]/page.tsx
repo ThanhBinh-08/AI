@@ -5,8 +5,9 @@ import { AuthorPanel, FactSheet, kindLabel, MakerStrip, StoryGrid } from "@/comp
 import { ReadingProgress } from "@/components/blog/ReadingProgress";
 import { CopyLink } from "@/components/blog/CopyLink";
 import { DealMentions, ToolTile } from "@/components/cards/cards";
+import { FeaturedDeals } from "@/components/deals/FeaturedDeals";
 import { BrandLogo, Breadcrumbs, JsonLd } from "@/components/ui/bits";
-import { getBlogPost } from "@/data/repository";
+import { getBlogPost, listFeaturedDeals } from "@/data/repository";
 import { formatDay } from "@/lib/dates";
 import { getSiteUrl } from "@/lib/env";
 import { article, breadcrumbs } from "@/lib/jsonld";
@@ -95,6 +96,8 @@ export default async function PostPage({ params }: Props) {
   const data = await getBlogPost((await params).slug);
   if (!data) notFound();
   const { post, tool, deals, related } = data;
+  // Featured deals of the article's topic first (its tool's categories), never the ones it already names.
+  const featured = await listFeaturedDeals({ categories: post.categories, exclude: deals.map((d) => d.id) });
   const path = `/blog/${post.slug}/`;
   const crumbs = [
     { name: "Home", path: "/" },
@@ -202,6 +205,9 @@ export default async function PostPage({ params }: Props) {
           </div>
         </section>
       ) : null}
+
+      {/* Articles stay editorial: the cards link to each deal's page, without a code or an outbound button. */}
+      <FeaturedDeals className="blog-block" deals={featured} id="post-featured" editorial />
 
       <AuthorPanel />
 

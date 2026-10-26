@@ -6,7 +6,7 @@
 const ID = /^[A-Za-z0-9_-]{1,64}$/;
 
 /** Where on the site an outbound CTA sits. Fixed list, so logs and reports stay comparable. */
-export const PLACEMENTS = ["tool-offer", "deal-page", "deal-row", "deal-ticket", "brand", "compare", "article"] as const;
+export const PLACEMENTS = ["tool-offer", "deal-page", "deal-row", "deal-ticket", "deals-market", "featured", "tool-site", "brand", "compare", "article"] as const;
 export type Placement = (typeof PLACEMENTS)[number];
 
 export interface GoContext {

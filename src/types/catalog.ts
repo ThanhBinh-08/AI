@@ -53,6 +53,14 @@ export interface Coupon {
   verification: Verification;
   verifiedAt: string | null;
   status: CouponStatus;
+  /**
+   * Sample row (publish_status=preview, or a deal of a preview tool). Never verified, never promoted; shown only by
+   * the local sample-deals preview (SHOW_SAMPLE_DEALS), labelled as sample data.
+   */
+  sample?: boolean;
+  /** Deals.is_featured: picked for the featured slots; `featuredOrder` (Deals.featured_order) sorts them, lowest first. */
+  featured?: boolean;
+  featuredOrder?: number | null;
 }
 
 export interface Product {
