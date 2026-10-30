@@ -3,11 +3,12 @@ import { FeaturedDeals } from "@/components/deals/FeaturedDeals";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DealList } from "@/components/cards/cards";
-import { CopyCode } from "@/components/ui/CopyCode";
+import { DealCodeBox, DealRevealProvider } from "@/components/deals/DealCodeBox";
 import { BrandLogo, Breadcrumbs, GoLink, JsonLd, VerificationStatus } from "@/components/ui/bits";
 import { getDeal, isPromotable, listFeaturedDeals } from "@/data/repository";
 import { formatDay } from "@/lib/dates";
 import { getSiteUrl } from "@/lib/env";
+import { goHref } from "@/lib/go";
 import { breadcrumbs } from "@/lib/jsonld";
 import { pageMeta } from "@/lib/seo";
 
@@ -95,7 +96,7 @@ export default async function DealPage({ params }: Props) {
               <dt>Discount</dt>
               <dd>{deal.discount}</dd>
               <dt>Code</dt>
-              <dd>{deal.code ? (deal.active ? deal.code : "Hidden, deal ended") : "No code for this deal"}</dd>
+              <dd>{deal.code ? (deal.active ? "Shown after Reveal Code or Get Deal" : "Hidden, deal ended") : "No code for this deal"}</dd>
               <dt>Status</dt>
               <dd>
                 <VerificationStatus value={deal.verification} at={deal.verifiedAt} expired={!deal.active} />
@@ -124,7 +125,7 @@ export default async function DealPage({ params }: Props) {
                 Using this deal
               </h2>
               <ol className="prose" style={{ paddingLeft: "1.3em" }}>
-                {deal.code ? <li>Copy the code {deal.code}.</li> : null}
+                {deal.code ? <li>Press Reveal Code or Get Deal on this page, then copy the code.</li> : null}
                 <li>Open {deal.brand.name}&apos;s site with the button on this page and choose the plan the deal applies to.</li>
                 {deal.code ? <li>Enter the code in the discount field at checkout.</li> : null}
                 <li>Check that the order total changed before you enter payment details.</li>
@@ -151,15 +152,19 @@ export default async function DealPage({ params }: Props) {
             {...(isPromotable(deal) ? { "data-impression": "", "data-brand": deal.brand.id, "data-offer": deal.id, "data-placement": "deal-page" } : {})}
           >
             {deal.active ? (
-              <>
+              <DealRevealProvider slug={deal.slug}>
                 <p className="offer-figure">{deal.discount}</p>
                 {deal.code ? (
-                  <CopyCode code={deal.code} size="lg" brand={deal.brand.id} offer={deal.id} placement="deal-page" />
+                  isPromotable(deal) ? (
+                    <DealCodeBox slug={deal.slug} href={deal.brand.hasAffiliate ? goHref(deal.brand.id, { offer: deal.id, from: "deal-page" }) : null} brand={deal.brand.id} offer={deal.id} />
+                  ) : (
+                    <p className="muted">The code is shown once this deal has been checked.</p>
+                  )
                 ) : (
                   <p className="muted">No code needed: the discount applies on {deal.brand.name}&apos;s site.</p>
                 )}
                 {deal.brand.hasAffiliate ? (
-                  <GoLink brandId={deal.brand.id} enabled offer={deal.id} from="deal-page" variant={isPromotable(deal) ? "dark" : "ghost"}>
+                  <GoLink brandId={deal.brand.id} enabled offer={deal.id} from="deal-page" variant={isPromotable(deal) ? "dark" : "ghost"} slug={isPromotable(deal) ? deal.slug : undefined} openOnArrival>
                     {isPromotable(deal) ? "Get Deal" : `Visit ${deal.brand.name}`}
                   </GoLink>
                 ) : (
@@ -171,7 +176,7 @@ export default async function DealPage({ params }: Props) {
                   <strong>Conditions:</strong> {deal.terms || "none published. Check the plan terms at checkout."}
                   {deal.expiresAt ? ` Ends ${formatDay(deal.expiresAt)}.` : " No end date published."}
                 </p>
-              </>
+              </DealRevealProvider>
             ) : (
               <Link className="btn btn-primary" href={`/brands/${deal.brand.slug}/`}>
                 Current {deal.brand.name} deals

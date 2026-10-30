@@ -6,6 +6,7 @@ import tones from "@/config/logo-tones.json";
 import { LogoImg } from "@/components/ui/logo-img";
 import { monogram } from "@/lib/text";
 import { goHref, type Placement } from "@/lib/go";
+import { GetDealLink } from "@/components/deals/GetDealLink";
 import type { Verification } from "@/types/catalog";
 
 export function JsonLd({ data }: { data: unknown }) {
@@ -55,7 +56,7 @@ export function VerificationStatus({ value, at, expired }: { value: Verification
  * query only labels the click). Without an approved link there is no button and no substitute URL: a quiet
  * "No partner link yet" note stands in its place, so a dead button is never presented as working.
  */
-export function GoLink({ brandId, enabled, children, variant = "primary", size, offer, from }: {
+export function GoLink({ brandId, enabled, children, variant = "primary", size, offer, from, slug, openOnArrival }: {
   brandId: string;
   enabled: boolean;
   children: ReactNode;
@@ -64,9 +65,12 @@ export function GoLink({ brandId, enabled, children, variant = "primary", size, 
   /** The deal this click is for, when there is one. */
   offer?: string | null;
   from?: Placement;
+  /** The deal's slug: the button then opens the deal's code popup (see GetDealLink). */
+  slug?: string;
+  openOnArrival?: boolean;
 }) {
   return (
-    <OutboundLink href={enabled ? goHref(brandId, { offer, from }) : null} variant={variant} size={size} brand={brandId} offer={offer} from={from}>
+    <OutboundLink href={enabled ? goHref(brandId, { offer, from }) : null} variant={variant} size={size} brand={brandId} offer={offer} from={from} slug={slug} openOnArrival={openOnArrival}>
       {children}
     </OutboundLink>
   );
@@ -76,7 +80,7 @@ export function GoLink({ brandId, enabled, children, variant = "primary", size, 
  * The outbound anchor itself, for callers that already hold a /go/ link (built server-side by goHref). `href` null →
  * the "no partner link" note, never a substitute destination.
  */
-export function OutboundLink({ href, children, variant = "primary", size, brand, offer, from, unavailable = "No partner link yet" }: {
+export function OutboundLink({ href, children, variant = "primary", size, brand, offer, from, slug, openOnArrival, unavailable = "No partner link yet" }: {
   href: string | null;
   children: ReactNode;
   variant?: "primary" | "dark" | "ghost";
@@ -84,14 +88,25 @@ export function OutboundLink({ href, children, variant = "primary", size, brand,
   brand?: string;
   offer?: string | null;
   from?: Placement;
+  /** The deal's slug: the button then opens the deal's code popup (see GetDealLink). Without it, a plain link. */
+  slug?: string;
+  openOnArrival?: boolean;
   unavailable?: string;
 }) {
   if (!href || !href.startsWith("/go/")) {
     return <span className={`cta-off${size ? " sm" : ""}`}>{unavailable}</span>;
   }
+  const className = `btn btn-${variant}${size ? ` btn-${size}` : ""}`;
+  if (slug) {
+    return (
+      <GetDealLink href={href} slug={slug} openOnArrival={openOnArrival} className={className} brand={brand} offer={offer} from={from}>
+        {children}
+      </GetDealLink>
+    );
+  }
   return (
     <a
-      className={`btn btn-${variant}${size ? ` btn-${size}` : ""}`}
+      className={className}
       href={href}
       rel="sponsored nofollow noopener"
       target="_blank"

@@ -3009,3 +3009,22 @@ a.chip:hover {
     position: static;
   }
 }
+
+/* Copy as an icon: a square button, so the code keeps the width. */
+.code-copy.icon {
+  display: flex;
+  max-width: 100%;
+}
+
+.code-copy.icon code {
+  min-width: 0;
+}
+
+.code-copy.icon button {
+  display: grid;
+  place-items: center;
+  flex: none;
+  min-width: 0;
+  width: 52px;
+  padding: 0;
+}

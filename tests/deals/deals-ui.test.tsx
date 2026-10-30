@@ -90,9 +90,11 @@ describe("Copy Code", () => {
 });
 
 describe("Coupon card", () => {
-  it("shows brand, discount, exact code, terms, check and end date, and links Get Deal through /go/", () => {
-    render(<ul><CouponCard coupon={coupon()} /></ul>);
-    expect(screen.getByText("ALPHA-20%x")).toBeInTheDocument();
+  it("shows brand, discount, a Reveal Code button without the code, terms, check and end date, and links Get Deal through /go/", () => {
+    const { container } = render(<ul><CouponCard coupon={coupon()} /></ul>);
+    expect(screen.getByRole("button", { name: /Reveal/ })).toHaveTextContent("Reveal Code");
+    expect(container.textContent).not.toContain("ALPHA-20%x");
+    expect(container.querySelector(".code-copy")).toBeNull();
     expect(screen.getByText("Annual plans only.")).toBeInTheDocument();
     expect(screen.getByText(/Source checked/)).toBeInTheDocument();
     expect(screen.getByText(/Ends Dec 31, 2099/)).toBeInTheDocument();
@@ -198,10 +200,10 @@ describe("Deals list", () => {
   it("keeps a brand filter that arrives in the link, shown as a pill that clears it", () => {
     const m = market({ coupons: [coupon(), coupon({ slug: "beta-b1", brandSlug: "brand01", brandName: "Brand01", code: "B10", categories: ["ai-video"] })] });
     render(<DealsMarket market={m} initial={initial(m, "brand=brand01")} />);
-    expect(screen.queryByText("ALPHA-20%x")).toBeNull();
-    expect(screen.getByText("B10")).toBeInTheDocument();
+    expect(document.querySelector('a[href="/deals/alpha-a1/"]')).toBeNull();
+    expect(document.querySelectorAll(".deal-row")).toHaveLength(1);
     fireEvent.click(screen.getByRole("button", { name: "Remove brand filter: Brand01" }));
-    expect(screen.getByText("ALPHA-20%x")).toBeInTheDocument();
+    expect(document.querySelectorAll(".deal-row")).toHaveLength(2);
     expect(window.location.search).toBe("");
   });
 

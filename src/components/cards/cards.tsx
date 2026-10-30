@@ -2,9 +2,9 @@ import Link from "next/link";
 import { categoryBySlug } from "@/config/categories";
 import { daysUntil, formatDay } from "@/lib/dates";
 import type { Brand, DealView, Post, Product } from "@/types/catalog";
-import { CopyCode } from "@/components/ui/CopyCode";
+import { RevealCode } from "@/components/deals/RevealCode";
 import { BrandLogo, GoLink, VerificationStatus } from "@/components/ui/bits";
-import type { Placement } from "@/lib/go";
+import { goHref, type Placement } from "@/lib/go";
 
 /** "30% off" → ["30%", "off"]; "2 months free" → ["2", "months free"]. The first token is the number shown big. */
 export function splitDiscount(discount: string): [string, string] {
@@ -29,7 +29,7 @@ export function endsLabel(day: string | null): { text: string; urgent: boolean }
 function DealCta({ deal, size, variant, from }: { deal: DealView; size?: "sm"; variant: "primary" | "dark"; from: Placement }) {
   if (deal.active && deal.verification !== "unverified" && deal.brand.hasAffiliate) {
     return (
-      <GoLink brandId={deal.brand.id} enabled size={size} variant={variant} offer={deal.id} from={from}>
+      <GoLink brandId={deal.brand.id} enabled size={size} variant={variant} offer={deal.id} from={from} slug={deal.slug}>
         Get Deal
       </GoLink>
     );
@@ -65,7 +65,7 @@ export function DealRow({ deal, headingLevel = 3 }: { deal: DealView; headingLev
         </div>
       </div>
       <div className="deal-actions">
-        {deal.active && deal.code ? <CopyCode code={deal.code} brand={deal.brand.id} offer={deal.id} placement="deal-row" /> : null}
+        {deal.active && deal.code ? <RevealCode slug={deal.slug} href={deal.brand.hasAffiliate ? goHref(deal.brand.id, { offer: deal.id, from: "deal-row" }) : null} label={`${deal.brand.name} ${deal.discount}`} brand={deal.brand.id} offer={deal.id} placement="deal-row" /> : null}
         <DealCta deal={deal} size="sm" variant="dark" from="deal-row" />
       </div>
     </li>

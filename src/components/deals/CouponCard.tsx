@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { endsLabel, splitDiscount } from "@/components/cards/cards";
-import { CopyCode } from "@/components/ui/CopyCode";
+import { RevealCode } from "@/components/deals/RevealCode";
 import { BrandLogo, OutboundLink, VerificationStatus } from "@/components/ui/bits";
 import type { MarketCoupon } from "@/lib/market";
 
@@ -34,8 +34,8 @@ export function CouponCard({ coupon }: { coupon: MarketCoupon }) {
       </div>
       <div className="deal-actions">
         {/* No code: the space stays empty, the deal applies through the link. */}
-        {coupon.code ? <CopyCode code={coupon.code} brand={coupon.brandSlug} offer={coupon.slug} placement="deals-market" /> : null}
-        <OutboundLink href={coupon.goHref} size="sm" variant="dark" brand={coupon.brandSlug} offer={coupon.slug} from="deals-market">
+        {coupon.code ? <RevealCode slug={coupon.slug} href={coupon.goHref} label={`${coupon.brandName} ${coupon.discount}`} brand={coupon.brandSlug} offer={coupon.slug} placement="deals-market" /> : null}
+        <OutboundLink href={coupon.goHref} size="sm" variant="dark" brand={coupon.brandSlug} offer={coupon.slug} from="deals-market" slug={coupon.slug}>
           Get Deal
         </OutboundLink>
       </div>
