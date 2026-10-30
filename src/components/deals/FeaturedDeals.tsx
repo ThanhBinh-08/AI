@@ -3,6 +3,7 @@ import { endsLabel, splitDiscount } from "@/components/cards/cards";
 import { RevealCode } from "@/components/deals/RevealCode";
 import type { CSSProperties } from "react";
 import { BrandLogo, GoLink, VerificationStatus } from "@/components/ui/bits";
+import { goHref } from "@/lib/go";
 import { TONES, toneOfCategory } from "@/lib/tone";
 import type { DealView } from "@/types/catalog";
 
@@ -112,12 +113,12 @@ function FeaturedCard({ deal, lead, editorial }: { deal: DealView; lead: boolean
         ) : (
           <>
             {code ? (
-              <RevealCode code={code} label={`${name} ${deal.discount}`} brand={deal.brand.id} offer={deal.id} placement="featured" />
+              <RevealCode code={code} slug={deal.slug} href={deal.brand.hasAffiliate ? goHref(deal.brand.id, { offer: deal.id, from: "featured" }) : null} label={`${name} ${deal.discount}`} brand={deal.brand.id} offer={deal.id} placement="featured" />
             ) : (
               // No code: an empty slot, so Get Deal keeps its place.
               <span className="fd-nocode" aria-hidden="true" />
             )}
-            <GoLink brandId={deal.brand.id} enabled={deal.brand.hasAffiliate} offer={deal.id} from="featured" size={lead ? undefined : "sm"}>
+            <GoLink brandId={deal.brand.id} enabled={deal.brand.hasAffiliate} offer={deal.id} from="featured" slug={deal.slug} size={lead ? undefined : "sm"}>
               Get Deal<span className="sr-only">: {deal.title}</span>
             </GoLink>
           </>

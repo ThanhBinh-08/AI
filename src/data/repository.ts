@@ -4,6 +4,7 @@ import { PAGE_SIZE } from "@/config/site";
 import { ARTICLES } from "@/content/articles";
 import { getParsedCatalog } from "@/data/store";
 import { siteLogoPath } from "@/lib/logo-path";
+import { goHref } from "@/lib/go";
 import { buildMarket, type Market } from "@/lib/market";
 import { isCheckedVerification, isLiveCoupon } from "@/lib/coupon-rules";
 import { FEATURED_LIMIT, selectFeatured, type FeaturedContext } from "@/lib/featured";
@@ -170,6 +171,39 @@ export async function getDeal(slug: string): Promise<DealPage | null> {
   const sameBrand = others.filter((d) => d.brandId === brand.id);
   const sameCategory = others.filter((d) => d.brandId !== brand.id && d.brand.categories.some((cat) => brand.categories.includes(cat)));
   return { deal, related: [...sameBrand, ...sameCategory].slice(0, 4) };
+}
+
+/** What the code popup of a deal needs. Fetched on demand, so the code never travels in the HTML of a list. */
+export interface DealReveal {
+  slug: string;
+  title: string;
+  brandName: string;
+  discount: string;
+  code: string | null;
+  terms: string;
+  expiresAt: string | null;
+  /** /go/<brandId>/ for the "Continue to store" fallback, or null without an approved link. */
+  goHref: string | null;
+}
+
+/** The popup data of a promotable deal (live and checked); anything else is null, like an unknown slug. */
+export async function getDealReveal(slug: string): Promise<DealReveal | null> {
+  const c = await catalog();
+  const coupon = c.coupons.find((x) => x.slug === slug);
+  const brand = coupon ? brandMap(c).get(coupon.brandId) : undefined;
+  if (!coupon || !brand) return null;
+  const deal = toDeal(coupon, brand);
+  if (!isPromotable(deal)) return null;
+  return {
+    slug: deal.slug,
+    title: deal.title,
+    brandName: brand.name,
+    discount: deal.discount,
+    code: deal.code,
+    terms: deal.terms,
+    expiresAt: deal.expiresAt,
+    goHref: brand.hasAffiliate ? goHref(brand.id, { offer: deal.id, from: "deal-page" }) : null,
+  };
 }
 
 /* ----------------------------------------- Brands ----------------------------------------- */

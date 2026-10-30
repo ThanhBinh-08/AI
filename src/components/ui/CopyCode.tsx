@@ -11,8 +11,10 @@ type CopyState = "idle" | "copied" | "failed";
  * pressing Copy never navigates. `brand`/`offer`/`placement` only label the copy for measurement.
  * On Blog routes it renders nothing: articles never carry a code or a copy control.
  */
-export function CopyCode({ code, size, tone, brand, offer, placement }: {
+export function CopyCode({ code, size, tone, icon, brand, offer, placement }: {
   code: string;
+  /** The button is a copy icon instead of the word, leaving the room to the code. */
+  icon?: boolean;
   size?: "lg";
   tone?: "paper";
   brand?: string;
@@ -41,7 +43,7 @@ export function CopyCode({ code, size, tone, brand, offer, placement }: {
 
   const label = state === "copied" ? "Copied" : state === "failed" ? "Select it" : "Copy";
   return (
-    <span className={`code-copy${size ? ` ${size}` : ""}${tone ? ` ${tone}` : ""}`}>
+    <span className={`code-copy${size ? ` ${size}` : ""}${tone ? ` ${tone}` : ""}${icon ? " icon" : ""}`}>
       <code title={code}>{code}</code>
       <button
         type="button"
@@ -53,11 +55,26 @@ export function CopyCode({ code, size, tone, brand, offer, placement }: {
         data-offer={offer}
         data-placement={placement}
       >
-        {label}
+        {icon ? <CopyIcon done={state === "copied"} /> : label}
       </button>
       <span className="sr-only" role="status" aria-live="polite">
         {state === "copied" ? `Code ${code} copied` : state === "failed" ? "Copy failed. Select the code and copy it manually." : ""}
       </span>
     </span>
+  );
+}
+
+function CopyIcon({ done }: { done: boolean }) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      {done ? (
+        <path d="m5 12.5 4.5 4.5L19 7.5" />
+      ) : (
+        <>
+          <rect x="9" y="9" width="11" height="11" rx="2.5" />
+          <path d="M5 15V6.5A2.5 2.5 0 0 1 7.5 4H15" />
+        </>
+      )}
+    </svg>
   );
 }

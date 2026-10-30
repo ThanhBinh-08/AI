@@ -737,3 +737,135 @@
     color: CanvasText;
   }
 }
+
+/* ---------- Code popup (Get Deal) ---------- */
+dialog.code-popup {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  width: calc(100% - 2rem);
+  max-width: 28rem;
+  height: fit-content;
+  max-height: calc(100dvh - 2rem);
+  padding: 0;
+  overflow: auto;
+  border: 0;
+  border-radius: 24px;
+  background: var(--pill-dark);
+  color: #ffffff;
+  box-shadow: inset 0 0 0 1px var(--line-strong), 0 24px 60px rgba(0, 0, 0, 0.6);
+  outline: none;
+}
+
+dialog.code-popup::backdrop {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+body:has(dialog.code-popup[open]) {
+  overflow: hidden;
+}
+
+.code-popup-body {
+  display: grid;
+  gap: 14px;
+  padding: 28px 24px 24px;
+}
+
+.code-popup-body h2 {
+  margin: 0;
+  font: 700 20px/1.25 var(--font-heading);
+  padding-right: 32px;
+}
+
+.code-popup-store,
+.code-popup-meta,
+.code-popup-terms {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.code-popup-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #ffffff;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.code-popup-code {
+  display: grid;
+  gap: 10px;
+}
+
+.code-popup-code code {
+  display: block;
+  min-width: 0;
+  padding: 16px 14px;
+  border: 1.5px dashed var(--line-strong);
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.5);
+  text-align: center;
+  /* Codes are short; a long one wraps at any point instead of overflowing the popup. */
+  overflow-wrap: anywhere;
+  font: 700 clamp(18px, 6vw, 24px) / 1.3 var(--font-code);
+  letter-spacing: 0.08em;
+  user-select: all;
+}
+
+.code-popup-code .btn {
+  width: 100%;
+  min-height: 44px;
+  justify-content: center;
+}
+
+.code-popup-skeleton {
+  display: grid;
+  gap: 12px;
+}
+
+.code-popup-skeleton span {
+  height: 44px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  animation: code-popup-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes code-popup-pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .code-popup-skeleton span {
+    animation: none;
+  }
+}
+
+/* Reveal Code on a deal page: full width, one size up. */
+.reveal-btn.reveal-btn-lg {
+  min-height: 56px;
+  font-size: 15px;
+}
+
+.code-skeleton {
+  display: block;
+  height: 56px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  animation: code-popup-pulse 1.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .code-skeleton {
+    animation: none;
+  }
+}
